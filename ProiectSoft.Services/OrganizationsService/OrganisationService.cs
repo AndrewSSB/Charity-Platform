@@ -24,6 +24,10 @@ namespace ProiectSoft.Services.OrganizationService
         {
             if (model != null)
             {
+                var caseId = _context.Cases.FirstOrDefaultAsync()?.Id;
+
+                if (caseId == null) { return; }
+
                 var organisation = new Organisation { 
                     Name = model.Name,
                     Email = model.Email,
@@ -84,7 +88,7 @@ namespace ProiectSoft.Services.OrganizationService
 
         public async Task Update(OrganisationPutModel model, int id)
         {
-            var organisation = _context.Organisations.FirstOrDefault(x => x.Id == id);
+            var organisation = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (model == null || organisation == null) { return; }
             
@@ -92,7 +96,12 @@ namespace ProiectSoft.Services.OrganizationService
             organisation.Email = model.Email;
             organisation.Phone = model.Phone;
             organisation.Details = model.Details;
-            organisation.CasesId = model.CasesId;
+
+            var caseId = _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId); //ar trebui sa verific daca exista cheia pe care o modific, daca exista o schimb, daca nu ramane aceeasi
+            //sau cu select _context.Cases.Select(x => x.Id).FirstOrDefaultAsync(x => x.Id == model.CaseId);
+            
+            //si acum daca dau un guid invalid ar trebui sa ramana acelasi care era inainte
+            if (caseId != null) { organisation.CasesId = model.CasesId; }
 
             await _context.SaveChangesAsync();
 
