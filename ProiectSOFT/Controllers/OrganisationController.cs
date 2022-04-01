@@ -37,7 +37,7 @@ namespace ProiectSOFT.Controllers
             return Ok(_case);
         }
 
-        [HttpPost("AddCase")]
+        [HttpPost("AddOrganisation")]
         public async Task<IActionResult> AddOrganisation([FromBody] OrganisationPostModel model)
         {
             if (model == null)
@@ -48,7 +48,7 @@ namespace ProiectSOFT.Controllers
             return Ok();
         }
 
-        [HttpPut("UpdateCase")]
+        [HttpPut("UpdateOrganisation")]
         public async Task<IActionResult> UpdateOrganisation([FromBody] OrganisationPutModel model, [FromQuery] int id)
         {
             await _organisationService.Update(model, id);
@@ -56,7 +56,7 @@ namespace ProiectSOFT.Controllers
             return Ok();
         }
 
-        [HttpDelete("DeleteCase")]
+        [HttpDelete("DeleteOrganisation")]
         public async Task<ActionResult> DeleteOrganisation([FromQuery] int id)
         {
             await _organisationService.Delete(id);
