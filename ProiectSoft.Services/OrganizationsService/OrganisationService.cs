@@ -24,7 +24,7 @@ namespace ProiectSoft.Services.OrganizationService
         {
             if (model != null)
             {
-                var caseId = _context.Cases.FirstOrDefaultAsync()?.Id;
+                var caseId = await _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId);
 
                 if (caseId == null) { return; }
 
