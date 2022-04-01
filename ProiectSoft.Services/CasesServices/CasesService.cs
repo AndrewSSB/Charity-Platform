@@ -106,8 +106,6 @@ namespace ProiectSoft.Services.CasesServices
             _case.closed = model.closed;
             _case.DateModified = DateTime.Now; //se salveaza automat cand ai facut modificarea
 
-            var x = _case;
-
             await _context.SaveChangesAsync();
         }
     }
