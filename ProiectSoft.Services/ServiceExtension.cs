@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using ProiectSoft.Services.CasesServices;
+using ProiectSoft.Services.LocationsServices;
 using ProiectSoft.Services.OrganizationService;
 using ProiectSoft.Services.OrganizationsService;
 using System;
@@ -16,6 +17,7 @@ namespace ProiectSoft.Services
         {
             services.AddTransient<ICasesServices, CasesService>();
             services.AddTransient<IOrganisationService, OrganisationService>();
+            services.AddTransient<ILocationServices, LocationServices>();
         }
     }
 }
