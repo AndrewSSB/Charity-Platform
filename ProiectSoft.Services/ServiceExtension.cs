@@ -5,6 +5,7 @@ using ProiectSoft.Services.OrganizationService;
 using ProiectSoft.Services.OrganizationsService;
 using ProiectSoft.Services.RefugeesServices;
 using ProiectSoft.Services.SheltersServices;
+using ProiectSoft.Services.UsersServices;
 using ProiectSoft.Services.VolunteersServices;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace ProiectSoft.Services
             services.AddTransient<IShelterServices, ShelterServices>();
             services.AddTransient<IRefugeeServices, RefugeeServices>();
             services.AddTransient<IVolunteerServices, VolunteerServices>();
+            services.AddTransient<IUserServices, UserServices>();
         }
     }
 }
