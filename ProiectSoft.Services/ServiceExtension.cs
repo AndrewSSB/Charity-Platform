@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using ProiectSoft.Services.CasesServices;
+using ProiectSoft.Services.DonationsServices;
 using ProiectSoft.Services.LocationsServices;
 using ProiectSoft.Services.OrganizationService;
 using ProiectSoft.Services.OrganizationsService;
@@ -26,6 +27,7 @@ namespace ProiectSoft.Services
             services.AddTransient<IRefugeeServices, RefugeeServices>();
             services.AddTransient<IVolunteerServices, VolunteerServices>();
             services.AddTransient<IUserServices, UserServices>();
+            services.AddTransient<IDonationServices, DonationServices>();
         }
     }
 }

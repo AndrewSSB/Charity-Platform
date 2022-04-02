@@ -21,20 +21,24 @@ namespace ProiectSoft.Services.VolunteersServices
 
         public async Task Create(VolunteerPostModel model)
         {
-            if (model != null)
-            {
-                var volunteer = new Volunteer
-                {
-                    Name = model.Name,
-                    lastName = model.lastName,
-                    Position = model.Position,
-                    contactDetails = model.contactDetails,
-                    OrganisationId = model.OrganisationId
-                };
+            if (model == null) { return; }
 
-                await _context.AddAsync(volunteer);
-                await _context.SaveChangesAsync();
-            }
+            var orgId = _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
+
+            if (orgId == null) { return; }
+
+            var volunteer = new Volunteer
+            {
+                Name = model.Name,
+                lastName = model.lastName,
+                Position = model.Position,
+                contactDetails = model.contactDetails,
+                OrganisationId = model.OrganisationId
+            };
+
+            await _context.AddAsync(volunteer);
+            await _context.SaveChangesAsync();
+            
         }
 
         public async Task Delete(int id)
@@ -93,7 +97,7 @@ namespace ProiectSoft.Services.VolunteersServices
             volunteer.Position = model.Position;
             volunteer.contactDetails = model.contactDetails;
 
-            var volunteerOrg = await _context.Volunteers.FirstOrDefaultAsync(x => x.OrganisationId == model.OrganisationId);
+            var volunteerOrg = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
 
             if (volunteerOrg != null)
             {

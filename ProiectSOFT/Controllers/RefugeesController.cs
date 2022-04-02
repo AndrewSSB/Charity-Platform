@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteRefugee")]
-        public async Task<ActionResult> DeleteCase([FromQuery] int id)
+        public async Task<ActionResult> DeleteRefugee([FromQuery] int id)
         {
             await _refugeeServices.Delete(id);
 

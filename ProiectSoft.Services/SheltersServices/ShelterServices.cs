@@ -21,21 +21,28 @@ namespace ProiectSoft.Services.SheltersServices
 
         public async Task Create(ShelterPostModel model)
         {
-            if (model != null)
-            {
-                var shelter = new Shelter
-                {
-                    Name = model.Name,
-                    availableSpace = model.availableSpace,
-                    Email = model.Email,
-                    Phone = model.Phone,
-                    LocationId = model.LocationId,
-                    OrganisationId = model.OrganisationId
-                };
+            if (model == null) { return; }
 
-                await _context.AddAsync(shelter);
-                await _context.SaveChangesAsync();
-            }
+            var location = _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
+            var organisation = _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
+
+            if (location == null) { return; }
+
+            if (organisation == null) { return; }
+            
+            var shelter = new Shelter
+            {
+                Name = model.Name,
+                availableSpace = model.availableSpace,
+                Email = model.Email,
+                Phone = model.Phone,
+                LocationId = model.LocationId,
+                OrganisationId = model.OrganisationId
+            };
+
+            await _context.AddAsync(shelter);
+            await _context.SaveChangesAsync();
+            
         }
 
         public async Task Delete(int id)
@@ -96,8 +103,8 @@ namespace ProiectSoft.Services.SheltersServices
             shelter.Email = model.Email;
             shelter.Phone = model.Phone;
 
-            var shelterLoc = await _context.Shelters.FirstOrDefaultAsync(x => x.LocationId == model.LocationId);
-            var shelterOrg = await _context.Shelters.FirstOrDefaultAsync(x => x.OrganisationId == model.OrganisationId);
+            var shelterLoc = await _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
+            var shelterOrg = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
 
             if (shelterLoc != null)
             {

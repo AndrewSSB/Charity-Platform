@@ -21,25 +21,25 @@ namespace ProiectSoft.Services.UsersServices
 
         public async Task Create(UserPostModel model)
         {
-            if (model != null)
+            if (model == null) { return; }
+            
+            var user = new User
             {
-                var user = new User
-                {
-                    Id = model.Id == null ? Guid.NewGuid() : new Guid(model.Id), //merge sa si introduci tu un guid da e mai naspa
-                    UserName = model.UserName,
-                    email = model.email,
-                    Password = model.Password,
-                    confirmPassword = model.confirmPassword,
-                    Type = model.Type,
-                    DateCreated = model.DateCreated == null ? DateTime.Now : model.DateCreated,
-                    DateModified = model.DateModified == null ? DateTime.Now : model.DateModified
-                };
+                Id = model.Id == null ? Guid.NewGuid() : new Guid(model.Id), //merge sa si introduci tu un guid da e mai naspa
+                UserName = model.UserName,
+                email = model.email,
+                Password = model.Password,
+                confirmPassword = model.confirmPassword,
+                Type = model.Type,
+                DateCreated = model.DateCreated == null ? DateTime.Now : model.DateCreated,
+                DateModified = model.DateModified == null ? DateTime.Now : model.DateModified
+            };
 
-                if (user.Password != user.confirmPassword) { return; }
+            if (user.Password != user.confirmPassword) { return; }
 
-                await _context.AddAsync(user);
-                await _context.SaveChangesAsync();
-            }
+            await _context.AddAsync(user);
+            await _context.SaveChangesAsync();
+     
         }
 
         public async Task Delete(Guid id)

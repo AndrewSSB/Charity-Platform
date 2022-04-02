@@ -49,7 +49,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateShelter")]
-        public async Task<IActionResult> UpdateLocation([FromBody] ShelterPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateShelter([FromBody] ShelterPutModel model, [FromQuery] int id)
         {
             await _shelterServices.Update(model, id);
 
@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteShelter")]
-        public async Task<ActionResult> DeleteLocation([FromQuery] int id)
+        public async Task<ActionResult> DeleteShelter([FromQuery] int id)
         {
             await _shelterServices.Delete(id);
 

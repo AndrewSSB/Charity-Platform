@@ -21,20 +21,24 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task Create(RefugeePostModel model)
         {
-            if (model != null)
-            {
-                var refugee = new Refugee
-                {
-                    Name = model.Name,
-                    lastName = model.Name,
-                    Age = model.Age,
-                    Details = model.Details,
-                    ShelterId = model.ShelterId
-                };
+            if (model == null) { return; }
 
-                await _context.AddAsync(refugee);
-                await _context.SaveChangesAsync();
-            }
+            var shelter = _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId);
+
+            if (shelter == null) { return; }
+
+            var refugee = new Refugee
+            {
+                Name = model.Name,
+                lastName = model.Name,
+                Age = model.Age,
+                Details = model.Details,
+                ShelterId = model.ShelterId
+            };
+
+            await _context.AddAsync(refugee);
+            await _context.SaveChangesAsync();
+            
         }
 
         public async Task Delete(int id)

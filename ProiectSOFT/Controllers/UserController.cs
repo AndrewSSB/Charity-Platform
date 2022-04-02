@@ -38,7 +38,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPost("AddUser")]
-        public async Task<IActionResult> AddCase([FromBody] UserPostModel model)
+        public async Task<IActionResult> AddUser([FromBody] UserPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -49,7 +49,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateCase([FromBody] UserPutModel model, [FromQuery] Guid id)
+        public async Task<IActionResult> UpdateUser([FromBody] UserPutModel model, [FromQuery] Guid id)
         {
             await _userServices.Update(model, id);
 
@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteUser")]
-        public async Task<ActionResult> DeleteCase([FromQuery] Guid id)
+        public async Task<ActionResult> DeleteUser([FromQuery] Guid id)
         {
             await _userServices.Delete(id);
 

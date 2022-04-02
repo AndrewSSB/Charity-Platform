@@ -22,23 +22,24 @@ namespace ProiectSoft.Services.OrganizationService
 
         public async Task Create(OrganisationPostModel model)
         {
-            if (model != null)
+            if (model == null) { return; }
+            
+            var caseId = await _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId);
+
+            if (caseId == null) { return; }
+
+            var organisation = new Organisation
             {
-                var caseId = await _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId);
+                Name = model.Name,
+                Email = model.Email,
+                Phone = model.Phone,
+                Details = model.Details,
+                CasesId = model.CasesId
+            };
 
-                if (caseId == null) { return; }
-
-                var organisation = new Organisation { 
-                    Name = model.Name,
-                    Email = model.Email,
-                    Phone = model.Phone,
-                    Details = model.Details,
-                    CasesId = model.CasesId
-                };
-
-                await _context.AddAsync(organisation);
-                await _context.SaveChangesAsync();
-            }
+            await _context.AddAsync(organisation);
+            await _context.SaveChangesAsync();
+            
         }
 
         public async Task Delete(int id)
