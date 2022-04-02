@@ -3,6 +3,7 @@ using ProiectSoft.Services.CasesServices;
 using ProiectSoft.Services.LocationsServices;
 using ProiectSoft.Services.OrganizationService;
 using ProiectSoft.Services.OrganizationsService;
+using ProiectSoft.Services.RefugeesServices;
 using ProiectSoft.Services.SheltersServices;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace ProiectSoft.Services
             services.AddTransient<IOrganisationService, OrganisationService>();
             services.AddTransient<ILocationServices, LocationServices>();
             services.AddTransient<IShelterServices, ShelterServices>();
+            services.AddTransient<IRefugeeServices, RefugeeServices>();
         }
     }
 }
