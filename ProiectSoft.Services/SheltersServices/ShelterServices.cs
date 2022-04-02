@@ -23,8 +23,8 @@ namespace ProiectSoft.Services.SheltersServices
         {
             if (model == null) { return; }
 
-            var location = _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
-            var organisation = _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
+            var location = await _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
+            var organisation = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
 
             if (location == null) { return; }
 

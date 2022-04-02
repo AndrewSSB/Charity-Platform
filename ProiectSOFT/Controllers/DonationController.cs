@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteDonation")]
-        public async Task<ActionResult> DeleteDonation([FromQuery] int id)
+        public async Task<IActionResult> DeleteDonation([FromQuery] int id)
         {
             await _donationServices.Delete(id);
 

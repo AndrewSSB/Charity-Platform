@@ -98,7 +98,7 @@ namespace ProiectSoft.Services.OrganizationService
             organisation.Phone = model.Phone;
             organisation.Details = model.Details;
 
-            var caseId = _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId); //ar trebui sa verific daca exista cheia pe care o modific, daca exista o schimb, daca nu ramane aceeasi
+            var caseId = await _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId); //ar trebui sa verific daca exista cheia pe care o modific, daca exista o schimb, daca nu ramane aceeasi
             //sau cu select _context.Cases.Select(x => x.Id).FirstOrDefaultAsync(x => x.Id == model.CaseId);
             
             //si acum daca dau un guid invalid ar trebui sa ramana acelasi care era inainte

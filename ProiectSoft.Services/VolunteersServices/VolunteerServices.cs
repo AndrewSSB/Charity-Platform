@@ -23,7 +23,7 @@ namespace ProiectSoft.Services.VolunteersServices
         {
             if (model == null) { return; }
 
-            var orgId = _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
+            var orgId = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
 
             if (orgId == null) { return; }
 

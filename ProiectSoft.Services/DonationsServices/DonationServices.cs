@@ -23,8 +23,8 @@ namespace ProiectSoft.Services.DonationsServices
         {
             if (model == null) { return; }
 
-            var user = _context.Users.FirstOrDefaultAsync(x => x.Id == model.UserId);
-            var organisation = _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId); //daca nu exista userID-ul, sau organisationID-ul renunt
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.UserId);
+            var organisation = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId); //daca nu exista userID-ul, sau organisationID-ul renunt
 
             if (user == null) { return; }
 

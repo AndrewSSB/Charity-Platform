@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteUser")]
-        public async Task<ActionResult> DeleteUser([FromQuery] Guid id)
+        public async Task<IActionResult> DeleteUser([FromQuery] Guid id)
         {
             await _userServices.Delete(id);
 

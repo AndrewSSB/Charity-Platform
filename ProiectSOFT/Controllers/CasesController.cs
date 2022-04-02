@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteCase")]
-        public async Task<ActionResult> DeleteCase([FromQuery] Guid id)
+        public async Task<IActionResult> DeleteCase([FromQuery] Guid id)
         {
             await _casesService.Delete(id);
 

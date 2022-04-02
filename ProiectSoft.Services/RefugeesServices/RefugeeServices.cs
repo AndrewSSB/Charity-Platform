@@ -23,7 +23,7 @@ namespace ProiectSoft.Services.RefugeesServices
         {
             if (model == null) { return; }
 
-            var shelter = _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId);
+            var shelter = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId);
 
             if (shelter == null) { return; }
 
@@ -35,6 +35,12 @@ namespace ProiectSoft.Services.RefugeesServices
                 Details = model.Details,
                 ShelterId = model.ShelterId
             };
+
+            //de fiecare data cand adaug un refugiat, available space din shelter scade
+
+            //var space = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId); //momentan o las asa, ceri ajutor mai tarziu
+
+            shelter.availableSpace -= 1;
 
             await _context.AddAsync(refugee);
             await _context.SaveChangesAsync();
@@ -48,6 +54,13 @@ namespace ProiectSoft.Services.RefugeesServices
             if (refugee == null)
             {
                 return;
+            }
+
+            var space = await _context.Shelters.Where(x => x.Id == refugee.ShelterId).FirstOrDefaultAsync(); //cred ca asa vine ? //asa o las momentan
+
+            if (space != null)
+            {
+                space.availableSpace += 1;
             }
 
             _context.Refugees.Remove(refugee);

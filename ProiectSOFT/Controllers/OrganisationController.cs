@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteOrganisation")]
-        public async Task<ActionResult> DeleteOrganisation([FromQuery] int id)
+        public async Task<IActionResult> DeleteOrganisation([FromQuery] int id)
         {
             await _organisationService.Delete(id);
 

@@ -21,19 +21,18 @@ namespace ProiectSoft.Services.LocationsServices
 
         public async Task Create(LocationPostModel model)
         {
-            if (model != null)
-            {
-                var location = new Location
-                {
-                    County = model.County,
-                    City = model.City,
-                    Street = model.Street,
-                    Number = model.Number,
-                };
+            if (model == null) { return; }
 
-                await _context.AddAsync(location);
-                await _context.SaveChangesAsync();
-            }
+            var location = new Location
+            {
+                County = model.County,
+                City = model.City,
+                Street = model.Street,
+                Number = model.Number,
+            };
+
+            await _context.AddAsync(location);
+            await _context.SaveChangesAsync();
         }
 
         public async Task Delete(int id)

@@ -57,7 +57,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteLocation")]
-        public async Task<ActionResult> DeleteLocation([FromQuery] int id)
+        public async Task<IActionResult> DeleteLocation([FromQuery] int id)
         {
             await _locationServices.Delete(id);
 
