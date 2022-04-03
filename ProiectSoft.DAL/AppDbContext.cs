@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.DAL.Configurations;
 using ProiectSoft.DAL.Entities;
 using System;
@@ -9,7 +11,15 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<
+        User,
+        Role,
+        Guid,
+        IdentityUserClaim<Guid>,
+        UserRole,
+        IdentityUserLogin<Guid>,
+        IdentityRoleClaim<Guid>,
+        IdentityUserToken<Guid>>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -36,6 +46,23 @@ namespace ProiectSoft.DAL
             modelBuilder.ApplyConfiguration(new CasesConfig());
             modelBuilder.ApplyConfiguration(new UserConfig());
             modelBuilder.ApplyConfiguration(new DonationConfig());
+
+            modelBuilder.Entity<User>(b =>
+            {
+                b.HasMany(u => u.UserRoles)
+                 .WithOne(ur => ur.User)
+                 .HasForeignKey(ur => ur.UserId)
+                 .IsRequired();
+            });
+
+            modelBuilder.Entity<Role>(b =>
+            {
+                b.HasMany(u => u.UserRoles)
+                 .WithOne(ur => ur.Role)
+                 .HasForeignKey(ur => ur.RoleId)
+                 .IsRequired();
+            });
+
         }
     }
 }

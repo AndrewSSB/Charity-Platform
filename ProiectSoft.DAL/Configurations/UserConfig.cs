@@ -15,19 +15,11 @@ namespace ProiectSoft.DAL.Configurations
         {
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.UserName)
+            builder.Property(x => x.FirstName)
                 .HasColumnType("nvarchar(50)")
                 .HasMaxLength(50);
 
-            builder.Property(x => x.email)
-                .HasColumnType("nvarchar(50)")
-                .HasMaxLength(50);
-
-            builder.Property(x => x.Password)
-                .HasColumnType("nvarchar(50)")
-                .HasMaxLength(50);
-
-            builder.Property(x => x.confirmPassword)
+            builder.Property(x => x.LastName)
                 .HasColumnType("nvarchar(50)")
                 .HasMaxLength(50);
 
