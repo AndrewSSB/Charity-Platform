@@ -26,7 +26,8 @@ namespace ProiectSoft.DAL.Seeders
             string[] roleNames =
             {
                 "Admin",
-                "User"
+                "User",
+                "Organisation"
             };
 
             foreach (var name in roleNames)

@@ -28,7 +28,7 @@ namespace ProiectSoft.BLL.Managers
 
         public async Task<Response> Login(LoginModel loginModel)
         {
-            var user = await _userManager.FindByEmailAsync(loginModel.Email);
+            var user = await _userManager.FindByNameAsync(loginModel.UserName);
 
             var role = await _userManager.GetRolesAsync(user);
 

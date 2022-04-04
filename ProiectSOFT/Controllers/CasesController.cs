@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.CasesModels;
 using ProiectSoft.Services.CasesServices;
 
@@ -14,7 +15,7 @@ namespace ProiectSOFT.Controllers
         {
             _casesService = casesService;
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll()
         {
