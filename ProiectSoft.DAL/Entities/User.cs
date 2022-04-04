@@ -14,7 +14,7 @@ namespace ProiectSoft.DAL.Entities
         public string Type { get; set; } //it can be a person or an organisation
         public DateTime? DateCreated { get; set; }
         public DateTime? DateModified { get; set; }
-        public string RefreshToken { get; set; }
+        public string? RefreshToken { get; set; }
         public virtual ICollection<Donation> Donations { get; set; }    
         public virtual ICollection<UserRole> UserRoles { get; set; }
     } 

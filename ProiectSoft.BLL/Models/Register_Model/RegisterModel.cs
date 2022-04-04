@@ -14,9 +14,11 @@ namespace ProiectSoft.BLL.Models.RegisterModel
         [Required(ErrorMessage = "Email is required")]
         public string? email { get; set; }
         [Required(ErrorMessage = "Password is required")]
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string? Password { get; set; }
-        public string? confirmPassword { get; set; }
-        [Required(ErrorMessage = "Type is required")]
         public string? Type { get; set; }
+        public string Role { get; set; }
+        public DateTime? DateCreated { get; set; }
     }
 }
