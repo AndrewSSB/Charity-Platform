@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProiectSoft.DAL\ProiectSoft.DAL.csproj" />
+    <ProjectReference Include="..\ProiectSoft.Services\ProiectSoft.Services.csproj" />
   </ItemGroup>
 
 </Project>

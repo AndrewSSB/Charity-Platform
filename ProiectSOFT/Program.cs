@@ -11,6 +11,8 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Seeders;
 using ProiectSoft.Services;
+using ProiectSoft.Services.UriServices;
+using ProiectSoft.Services.UriServicess;
 using System.Configuration;
 using System.Text;
 
@@ -21,7 +23,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Connection to database
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        B => B.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
+});
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddSingleton<IUriServices>(o =>
+{
+    var accesor = o.GetRequiredService<IHttpContextAccessor>();
+    var request = accesor.HttpContext.Request;
+    var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
+    return new UriServices(uri);
 });
 
 builder.Services.AddIdentity<User, Role>()

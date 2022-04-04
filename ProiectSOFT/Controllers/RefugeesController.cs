@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL.Models.RefugeeModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.RefugeesServices;
+using ProiectSoft.Services.UriServicess;
 
 namespace ProiectSOFT.Controllers
 {
@@ -9,21 +12,28 @@ namespace ProiectSOFT.Controllers
     public class RefugeesController : Controller
     {
         private readonly IRefugeeServices _refugeeServices;
+        private readonly IUriServices _uriService;
 
-        public RefugeesController(IRefugeeServices refugeeServices)
+        public RefugeesController(IRefugeeServices refugeeServices, IUriServices uriServices)
         {
             _refugeeServices = refugeeServices;
+            _uriService = uriServices;
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _refugeeServices.GetAll();
+            var route = Request.Path.Value;
+            var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+            
+            var cases = await _refugeeServices.GetAll(validFilter.PageNumber, validFilter.PageSize);
 
             if (cases == null)
                 return BadRequest();
 
-            return Ok(cases);
+            var totalRecord = await _refugeeServices.CountAsync();
+            var pagedResponse = PaginationHelper.CreatePagedReponse<RefugeeGetModel>(cases, validFilter, totalRecord, _uriService, route);
+            return Ok(pagedResponse);
         }
 
         [HttpGet("GetById")]
@@ -34,7 +44,7 @@ namespace ProiectSOFT.Controllers
             if (_case == null)
                 return BadRequest();
 
-            return Ok(_case);
+            return Ok(new ResponseW<RefugeeGetModel>(_case));
         }
 
         [HttpPost("AddRefugee")]

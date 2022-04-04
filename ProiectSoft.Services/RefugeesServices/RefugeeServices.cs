@@ -67,7 +67,7 @@ namespace ProiectSoft.Services.RefugeesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<RefugeeGetModel>> GetAll()
+        public async Task<List<RefugeeGetModel>> GetAll(int PageNumber, int PageSize)
         {
             return await _context.Refugees.Select(x => new RefugeeGetModel
             {
@@ -77,7 +77,10 @@ namespace ProiectSoft.Services.RefugeesServices
                 Age = x.Age,
                 Details = x.Details,
                 ShelterId = x.ShelterId
-            }).ToListAsync();
+            })
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
         }
 
         public async Task<RefugeeGetModel> GetById(int id)
@@ -118,6 +121,11 @@ namespace ProiectSoft.Services.RefugeesServices
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> CountAsync()
+        {
+            return await _context.Refugees.CountAsync();
         }
     }
 }

@@ -9,10 +9,11 @@ namespace ProiectSoft.Services.RefugeesServices
 {
     public interface IRefugeeServices
     {
-        Task<List<RefugeeGetModel>> GetAll();
+        Task<List<RefugeeGetModel>> GetAll(int PageNumber, int PageSize);
         Task<RefugeeGetModel> GetById(int id);
         Task Create(RefugeePostModel model);
         Task Update(RefugeePutModel model, int id);
         Task Delete(int id);
+        Task<int> CountAsync();
     }
 }
