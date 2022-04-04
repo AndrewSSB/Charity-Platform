@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL.Entities
 {
-    public class Shelter
+    public class Shelter : BaseEntity.BaseEntity
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public int? availableSpace { get; set; }
         public string Email { get; set; }

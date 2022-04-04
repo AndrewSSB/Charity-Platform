@@ -19,25 +19,6 @@ namespace ProiectSoft.Services.UsersServices
             _context = context;
         }
 
-        public async Task Create(UserPostModel model)
-        {
-            if (model == null) { return; }
-            
-            var user = new User
-            {
-                Id = model.Id == null ? Guid.NewGuid() : new Guid(model.Id), //merge sa si introduci tu un guid da e mai naspa
-                UserName = model.UserName,
-                Email = model.email,
-                Type = model.Type,
-                DateCreated = model.DateCreated == null ? DateTime.Now : model.DateCreated,
-                DateModified = model.DateModified == null ? DateTime.Now : model.DateModified
-            };
-
-            await _context.AddAsync(user);
-            await _context.SaveChangesAsync();
-            
-        }
-
         public async Task Delete(Guid id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
@@ -95,6 +76,8 @@ namespace ProiectSoft.Services.UsersServices
                 return;
             }
 
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
             user.UserName = model.UserName;
             user.Email = model.email;
             user.Type = model.Type;

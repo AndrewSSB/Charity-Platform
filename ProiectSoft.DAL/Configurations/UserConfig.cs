@@ -27,9 +27,6 @@ namespace ProiectSoft.DAL.Configurations
                 .HasColumnType("nvarchar(20)")
                 .HasMaxLength(20);
 
-            builder.Property(x => x.RefreshToken)
-                .IsRequired(false);
-
             builder.Property(x => x.DateCreated)
                 .IsRequired(false);
         }

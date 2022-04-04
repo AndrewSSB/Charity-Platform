@@ -12,7 +12,7 @@ namespace ProiectSoft.DAL.Entities.BaseEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime? DateCreated { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]

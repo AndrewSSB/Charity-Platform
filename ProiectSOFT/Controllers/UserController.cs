@@ -37,17 +37,6 @@ namespace ProiectSOFT.Controllers
             return Ok(_case);
         }
 
-        [HttpPost("AddUser")]
-        public async Task<IActionResult> AddUser([FromBody] UserPostModel model)
-        {
-            if (model == null)
-                return BadRequest();
-
-            await _userServices.Create(model);
-
-            return Ok();
-        }
-
         [HttpPut("UpdateUser")]
         public async Task<IActionResult> UpdateUser([FromBody] UserPutModel model, [FromQuery] Guid id)
         {

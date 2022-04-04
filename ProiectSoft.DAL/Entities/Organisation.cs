@@ -6,14 +6,13 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL.Entities
 {
-    public class Organisation
+    public class Organisation : BaseEntity.BaseEntity
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Details { get; set; }
-        public Guid CasesId { get; set; }
+        public int CasesId { get; set; }
         public virtual ICollection<Shelter> Shelters { get; set; }
         public virtual ICollection<Volunteer> Volunteers { get; set; }
         public virtual Cases Case { get; set; }

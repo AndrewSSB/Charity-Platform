@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL.Entities
 {
-    public class Location
+    public class Location : BaseEntity.BaseEntity
     {
-        [Key]
-        public int Id { get; set; }
         public string County { get; set; }
         public string City { get; set; }
         public string Street { get; set; }

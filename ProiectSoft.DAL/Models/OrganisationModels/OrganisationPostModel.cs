@@ -12,6 +12,6 @@ namespace ProiectSoft.DAL.Models.OrganisationModels
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Details { get; set; }
-        public Guid CasesId { get; set; }
+        public int CasesId { get; set; }
     }
 }

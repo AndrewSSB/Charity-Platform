@@ -9,7 +9,6 @@ namespace ProiectSoft.DAL.Models.CasesModels
 {
     public class CasesPostModel
     {
-        public string? Id { get; set; }
         public string caseName { get; set; }
         public string caseDetails { get; set; }
         public DateTime? startDate { get; set; }

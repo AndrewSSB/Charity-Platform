@@ -43,12 +43,5 @@ namespace ProiectSOFT.Controllers
 
             return BadRequest();
         }
-
-        [HttpPost("Refresh")]
-        public async Task<IActionResult> Refresh(RefreshModel model)
-        {
-            var result = await _authManager.Refresh(model);
-            return Ok(result);
-        }
     }
 }

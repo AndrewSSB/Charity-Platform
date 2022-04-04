@@ -24,23 +24,21 @@ namespace ProiectSoft.Services.CasesServices
             if (model == null) { return; }
            
             var _case = new Cases
-            {
-                Id = model.Id == null ? Guid.NewGuid() : new Guid(model.Id), //merge sa si introduci tu un guid da e mai naspa
+            {   
                 caseName = model.caseName,
                 caseDetails = model.caseDetails,
                 startDate = model.startDate,
                 endDate = model.endDate,
                 closed = model.closed,
-                DateCreated = model.created == null ? DateTime.Now : model.created,
-                DateModified = model.modified == null ? DateTime.Now : model.modified,
-                
+                DateCreated = model.created,
+                DateModified = model.modified
             };
 
             await _context.AddAsync(_case);
             await _context.SaveChangesAsync();
             
         }
-        public async Task Delete(Guid id)
+        public async Task Delete(int id)
         {
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
             
@@ -68,7 +66,7 @@ namespace ProiectSoft.Services.CasesServices
             }).ToListAsync();
         }
 
-        public async Task<CasesGetModel> GetById(Guid id)
+        public async Task<CasesGetModel> GetById(int id)
         {
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -92,7 +90,7 @@ namespace ProiectSoft.Services.CasesServices
             return casesGetModel;
         }
 
-        public async Task Update(CasesPutModel model, Guid id)
+        public async Task Update(CasesPutModel model, int id)
         {
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
 

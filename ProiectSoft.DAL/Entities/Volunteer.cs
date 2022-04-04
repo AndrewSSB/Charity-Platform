@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL.Entities
 {
-    public class Volunteer
+    public class Volunteer : BaseEntity.BaseEntity
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string lastName { get; set; }
         public string Position { get; set; }

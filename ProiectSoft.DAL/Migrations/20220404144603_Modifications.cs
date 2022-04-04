@@ -33,7 +33,6 @@ namespace ProiectSoft.DAL.Migrations
                     Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DateModified = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -58,7 +57,8 @@ namespace ProiectSoft.DAL.Migrations
                 name: "Cases",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     caseName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     caseDetails = table.Column<string>(type: "nvarchar(400)", maxLength: 400, nullable: false),
                     startDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -81,7 +81,9 @@ namespace ProiectSoft.DAL.Migrations
                     County = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Street = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Number = table.Column<int>(type: "int", nullable: true)
+                    Number = table.Column<int>(type: "int", nullable: true),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -204,7 +206,9 @@ namespace ProiectSoft.DAL.Migrations
                     Email = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Details = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    CasesId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CasesId = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -225,7 +229,9 @@ namespace ProiectSoft.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     donation = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrganisationId = table.Column<int>(type: "int", nullable: false)
+                    OrganisationId = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -255,7 +261,9 @@ namespace ProiectSoft.DAL.Migrations
                     Email = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
                     LocationId = table.Column<int>(type: "int", nullable: false),
-                    OrganisationId = table.Column<int>(type: "int", nullable: false)
+                    OrganisationId = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -284,7 +292,9 @@ namespace ProiectSoft.DAL.Migrations
                     lastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Position = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     contactDetails = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    OrganisationId = table.Column<int>(type: "int", nullable: false)
+                    OrganisationId = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -307,7 +317,9 @@ namespace ProiectSoft.DAL.Migrations
                     lastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Age = table.Column<int>(type: "int", nullable: true),
                     Details = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    ShelterId = table.Column<int>(type: "int", nullable: false)
+                    ShelterId = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {

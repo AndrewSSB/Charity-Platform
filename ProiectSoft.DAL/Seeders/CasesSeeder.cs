@@ -16,7 +16,6 @@ namespace ProiectSoft.DAL.Seeders
         {
             var _case = new Cases
             {
-                Id = Guid.NewGuid(),
                 caseName = "Ukranian Refugees",
                 caseDetails = "Helping refugees with shelters and food",
                 startDate = DateTime.Now,

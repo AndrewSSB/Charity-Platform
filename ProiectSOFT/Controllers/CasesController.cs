@@ -28,7 +28,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetById")]
-        public async Task<IActionResult> GetById([FromQuery] Guid id)
+        public async Task<IActionResult> GetById([FromQuery] int id)
         {
             var _case = await _casesService.GetById(id);
 
@@ -50,7 +50,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateCase")]
-        public async Task<IActionResult> UpdateCase([FromBody] CasesPutModel model, [FromQuery] Guid id)
+        public async Task<IActionResult> UpdateCase([FromBody] CasesPutModel model, [FromQuery] int id)
         {
             await _casesService.Update(model, id);
 
@@ -58,7 +58,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpDelete("DeleteCase")]
-        public async Task<IActionResult> DeleteCase([FromQuery] Guid id)
+        public async Task<IActionResult> DeleteCase([FromQuery] int id)
         {
             await _casesService.Delete(id);
 

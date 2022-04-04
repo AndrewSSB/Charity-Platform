@@ -11,7 +11,6 @@ namespace ProiectSoft.Services.UsersServices
     {
         Task<List<UserGetModel>> GetAll();
         Task<UserGetModel> GetById(Guid id);
-        Task Create(UserPostModel model);
         Task Update(UserPutModel model, Guid id);
         Task Delete(Guid id);
     }

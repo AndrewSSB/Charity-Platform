@@ -8,6 +8,8 @@ namespace ProiectSoft.DAL.Models.UserModels
 {
     public class UserPutModel
     {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string UserName { get; set; }
         public string email { get; set; }
         public string Type { get; set; } //it can be a person or an organisation

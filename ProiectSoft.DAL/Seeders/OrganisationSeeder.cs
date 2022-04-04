@@ -25,7 +25,7 @@ namespace ProiectSoft.DAL.Seeders
                     Email = "test@softbinator.com",
                     Phone = "0741498829",
                     Details = "-",
-                    CasesId = new Guid(id.Value.ToString())
+                    CasesId = id.Value
                 };
 
                 if (!getContext().Organisations.Any(x => x.Name == organisation.Name))

@@ -10,9 +10,9 @@ namespace ProiectSoft.Services.CasesServices
     public interface ICasesServices
     {
         Task<List<CasesGetModel>> GetAll();
-        Task<CasesGetModel> GetById(Guid id);
+        Task<CasesGetModel> GetById(int id);
         Task Create(CasesPostModel model);
-        Task Update(CasesPutModel model, Guid id);
-        Task Delete(Guid id);
+        Task Update(CasesPutModel model, int id);
+        Task Delete(int id);
     }
 }
