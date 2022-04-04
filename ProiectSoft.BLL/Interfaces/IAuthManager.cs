@@ -13,6 +13,5 @@ namespace ProiectSoft.BLL.Interfaces
     {
         Task<bool> Register(RegisterModel registerModel);
         Task<Response> Login(LoginModel loginModel);
-        Task<string> Refresh(RefreshModel refreshModel);
     }
 }

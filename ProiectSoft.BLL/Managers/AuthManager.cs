@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Interfaces;
 using ProiectSoft.BLL.Models;
 using ProiectSoft.BLL.Models.Login_Model;
 using ProiectSoft.BLL.Models.RegisterModel;
+using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,13 +19,16 @@ namespace ProiectSoft.BLL.Managers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ITokenHelper _tokenHelper;
+        private readonly AppDbContext _appDbContext;
         public AuthManager(UserManager<User> userManager,
                SignInManager<User> signInManager,
-               ITokenHelper tokenHelper)
+               ITokenHelper tokenHelper,
+               AppDbContext appDbContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenHelper = tokenHelper;
+            _appDbContext = appDbContext;
         }
 
         public async Task<Response> Login(LoginModel loginModel)
@@ -47,8 +52,12 @@ namespace ProiectSoft.BLL.Managers
                 var token = await _tokenHelper.CreateAccesToken(user);
                 var refreshToken = _tokenHelper.CreateRefreshToken();
 
-                user.RefreshToken = refreshToken;
-                await _userManager.UpdateAsync(user);
+                //user.RefreshToken = refreshToken;
+                //await _userManager.UpdateAsync(user);
+
+                var refreshTokenResult = await SetAuthenticationToken(user, "", "refreshToken", refreshToken);
+
+                if (!refreshTokenResult) { return new Response { Success = false }; }
 
                 return new Response
                 {
@@ -65,22 +74,6 @@ namespace ProiectSoft.BLL.Managers
                     Success = false
                 };
             }
-        }
-
-        public async Task<string> Refresh(RefreshModel refreshModel)
-        {
-            var principal = _tokenHelper.GetPrincipalFromExpiredToken(refreshModel.AccesToken);
-            var username = principal.Identity.Name;
-
-            //var user = await _userManager.FindByEmailAsync(username);
-            var user = await _userManager.FindByNameAsync(username);
-
-            if (user.RefreshToken != refreshModel.RefreshToken)
-                return "Bad Refresh";
-
-            var newJwtToken = await _tokenHelper.CreateAccesToken(user);
-
-            return newJwtToken;
         }
 
         public async Task<bool> Register(RegisterModel registerModel)
@@ -105,6 +98,38 @@ namespace ProiectSoft.BLL.Managers
             }
 
             return false;
+        }
+
+        private async Task<bool> SetAuthenticationToken(User user, string loginProvider, string name, string value)
+        {
+            if (user == null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value)) { return false; }
+
+            //var existingToken = await _appDbContext.UserTokens.FirstOrDefaultAsync();
+
+            var existingToken = await _appDbContext.UserTokens.FirstOrDefaultAsync(x => x.Name == name &&
+                                                                                   x.LoginProvider == loginProvider &&
+                                                                                   x.UserId == user.Id);
+
+            if (existingToken == null)
+            {
+                var newToken = new IdentityUserToken<Guid>()
+                {
+                    UserId = user.Id,
+                    LoginProvider = loginProvider,
+                    Name = name,
+                    Value = value
+                };
+
+                await _appDbContext.UserTokens.AddAsync(newToken);
+            }
+            else
+            {
+                existingToken.Value = value;
+            }
+
+            await _appDbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }

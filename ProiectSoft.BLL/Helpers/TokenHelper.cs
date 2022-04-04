@@ -3,9 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using ProiectSoft.BLL.Interfaces;
+using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -19,12 +21,14 @@ namespace ProiectSoft.BLL.Helpers
     {
         private readonly IConfiguration _configuration;
         private readonly UserManager<User> _userManager;
-
+        private readonly AppDbContext _appDbContext;
         public TokenHelper(IConfiguration configuration,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            AppDbContext appDbContext)
         {
             _configuration = configuration;
             _userManager = userManager;
+            _appDbContext = appDbContext;
         }
 
         public async Task<string> CreateAccesToken(User user)
