@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.RefugeeModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +16,12 @@ namespace ProiectSoft.Services.RefugeesServices
     public class RefugeeServices : IRefugeeServices
     {
         private readonly AppDbContext _context;
+        private readonly IUriServices _uriService;
 
-        public RefugeeServices(AppDbContext context)
+        public RefugeeServices(AppDbContext context, IUriServices uriService)
         {
             _context = context;
+            _uriService = uriService;
         }
 
         public async Task Create(RefugeePostModel model)
@@ -67,9 +72,9 @@ namespace ProiectSoft.Services.RefugeesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<RefugeeGetModel>> GetAll(int PageNumber, int PageSize)
-        {
-            return await _context.Refugees.Select(x => new RefugeeGetModel
+        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route)
+        { 
+            var refugeesList =  await _context.Refugees.Select(x => new RefugeeGetModel
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -78,9 +83,15 @@ namespace ProiectSoft.Services.RefugeesServices
                 Details = x.Details,
                 ShelterId = x.ShelterId
             })
-                .Skip((PageNumber - 1) * PageSize)
-                .Take(PageSize)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
+
+            var refugeesListCount = await _context.Refugees.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<RefugeeGetModel>(refugeesList, filter, refugeesListCount, _uriService, route);
+
+            return pagedResponse;
         }
 
         public async Task<RefugeeGetModel> GetById(int id)

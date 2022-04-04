@@ -13,12 +13,12 @@ namespace ProiectSoft.DAL.Wrappers
         public PaginationFilter()
         {
             this.PageNumber = 1;
-            this.PageSize = 10;
+            this.PageSize = 50;
         }
         public PaginationFilter(int pageNumber, int pageSize)
         {
-            this.PageNumber = pageNumber < 1 ? 1 : pageNumber;
-            this.PageSize = pageSize > 10 ? 10 : pageSize;
+            this.PageNumber = pageNumber == 0 ? 1 : pageNumber;
+            this.PageSize = pageSize > 50 ? 50 : pageSize;
         }
     }
 }

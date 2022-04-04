@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL.Wrappers
 {
-    public class PagedResponse<T> : ResponseW<T>
+    public class PagedResponse<T> : Response<T>
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }

@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace ProiectSoft.DAL.Wrappers
 {
-    public class ResponseW<T>
+    public class Response<T>
     {
-        public ResponseW()
+        public Response()
         {
         }
-        public ResponseW(T data)
+        public Response(T data)
         {
             Succeeded = true;
             Message = string.Empty;

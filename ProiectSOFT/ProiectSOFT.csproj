@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProiectSoft.BLL\ProiectSoft.BLL.csproj" />
     <ProjectReference Include="..\ProiectSoft.DAL\ProiectSoft.DAL.csproj" />
     <ProjectReference Include="..\ProiectSoft.Services\ProiectSoft.Services.csproj" />
   </ItemGroup>

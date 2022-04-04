@@ -24,16 +24,10 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
             var route = Request.Path.Value;
-            var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
             
-            var cases = await _refugeeServices.GetAll(validFilter.PageNumber, validFilter.PageSize);
+            var cases = await _refugeeServices.GetAll(filter, route);
 
-            if (cases == null)
-                return BadRequest();
-
-            var totalRecord = await _refugeeServices.CountAsync();
-            var pagedResponse = PaginationHelper.CreatePagedReponse<RefugeeGetModel>(cases, validFilter, totalRecord, _uriService, route);
-            return Ok(pagedResponse);
+            return Ok(cases);
         }
 
         [HttpGet("GetById")]
@@ -44,7 +38,7 @@ namespace ProiectSOFT.Controllers
             if (_case == null)
                 return BadRequest();
 
-            return Ok(new ResponseW<RefugeeGetModel>(_case));
+            return Ok(new Response<RefugeeGetModel>(_case));
         }
 
         [HttpPost("AddRefugee")]
