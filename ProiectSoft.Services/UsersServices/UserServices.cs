@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.UserModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +16,11 @@ namespace ProiectSoft.Services.UsersServices
     public class UserServices : IUserServices
     {
         private readonly AppDbContext _context;
+        private readonly IUriServices _uriServices;
 
-        public UserServices(AppDbContext context)
+        public UserServices(AppDbContext context, IUriServices uriServices)
         {
+            _uriServices = uriServices;
             _context = context;
         }
 
@@ -32,9 +37,9 @@ namespace ProiectSoft.Services.UsersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<UserGetModel>> GetAll()
+        public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Users.Select(x => new UserGetModel
+            var users = await _context.Users.Select(x => new UserGetModel
             {
                 Id = x.Id.ToString(),
                 UserName = x.UserName,
@@ -42,7 +47,16 @@ namespace ProiectSoft.Services.UsersServices
                 Type = x.Type,
                 DateCreated = x.DateCreated.ToString(),
                 DateModified = x.DateModified.ToString(),
-            }).ToListAsync();
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var usersListCount = await _context.Cases.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<UserGetModel>(users, filter, usersListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<UserGetModel> GetById(Guid id)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.LocationModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.LocationsServices;
 
 namespace ProiectSOFT.Controllers
@@ -16,25 +17,21 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _locationServices.GetAll();
+            var route = Request.Path.Value;
 
-            if (cases == null)
-                return BadRequest();
+            var locations = await _locationServices.GetAll(filter, route);
 
-            return Ok(cases);
+            return Ok(locations);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            var _case = await _locationServices.GetById(id);
+            var location = await _locationServices.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<LocationGetModel>(location));
         }
 
         [HttpPost("AddLocation")]

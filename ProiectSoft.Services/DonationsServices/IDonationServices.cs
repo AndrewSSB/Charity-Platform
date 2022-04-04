@@ -1,4 +1,5 @@
 ﻿using ProiectSoft.DAL.Models.DonationModels;
+using ProiectSoft.DAL.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace ProiectSoft.Services.DonationsServices
 {
     public interface IDonationServices
     {
-        Task<List<DonationGetModel>> GetAll();
+        Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route);
         Task<DonationGetModel> GetById(int id);
         Task Create(DonationPostModel model);
         Task Update(DonationPutModel model, int id);

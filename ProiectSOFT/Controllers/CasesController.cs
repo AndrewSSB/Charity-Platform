@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.CasesModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.CasesServices;
 
 namespace ProiectSOFT.Controllers
@@ -15,14 +16,13 @@ namespace ProiectSOFT.Controllers
         {
             _casesService = casesService;
         }
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _casesService.GetAll();
+            var route = Request.Path.Value;
 
-            if (cases == null)
-                return BadRequest();
+            var cases = await _casesService.GetAll(filter, route);
 
             return Ok(cases);
         }
@@ -32,10 +32,7 @@ namespace ProiectSOFT.Controllers
         {
             var _case = await _casesService.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<CasesGetModel>(_case));
         }
 
         [HttpPost("AddCase")]

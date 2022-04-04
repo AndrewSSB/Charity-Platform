@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.VolunteerModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +16,11 @@ namespace ProiectSoft.Services.VolunteersServices
     public class VolunteerServices : IVolunteerServices
     {
         private readonly AppDbContext _context;
+        private readonly IUriServices _uriServices;
 
-        public VolunteerServices(AppDbContext context)
+        public VolunteerServices(AppDbContext context, IUriServices uriServices)
         {
+            _uriServices = uriServices;
             _context = context;
         }
 
@@ -54,9 +59,9 @@ namespace ProiectSoft.Services.VolunteersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<VolunteerGetModel>> GetAll()
+        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Volunteers.Select(x => new VolunteerGetModel
+            var volunteers = await _context.Volunteers.Select(x => new VolunteerGetModel
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -64,7 +69,16 @@ namespace ProiectSoft.Services.VolunteersServices
                 Position = x.Position,
                 contactDetails = x.contactDetails,
                 OrganisationId = x.OrganisationId
-            }).ToListAsync();
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var volunteerListCount = await _context.Cases.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<VolunteerGetModel>(volunteers, filter, volunteerListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<VolunteerGetModel> GetById(int id)

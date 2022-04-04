@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.DonationModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +16,10 @@ namespace ProiectSoft.Services.DonationsServices
     public class DonationServices : IDonationServices
     {
         private readonly AppDbContext _context;
-
-        public DonationServices(AppDbContext context)
+        private readonly IUriServices _uriServices;
+        public DonationServices(AppDbContext context, IUriServices uriServices)
         {
+            _uriServices = uriServices;
             _context = context;
         }
 
@@ -55,15 +59,24 @@ namespace ProiectSoft.Services.DonationsServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<DonationGetModel>> GetAll()
+        public async Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Donations.Select(x => new DonationGetModel
+            var donations = await _context.Donations.Select(x => new DonationGetModel
             {
                 Id = x.Id,
                 donation = x.donation,
-                UserId=x.UserId,
-                OrganisationId=x.OrganisationId
-            }).ToListAsync();
+                UserId = x.UserId,
+                OrganisationId = x.OrganisationId
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var donationsListCount = await _context.Donations.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<DonationGetModel>(donations, filter, donationsListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<DonationGetModel> GetById(int id)

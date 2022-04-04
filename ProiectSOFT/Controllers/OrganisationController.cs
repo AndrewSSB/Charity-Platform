@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.OrganisationModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.OrganizationsService;
 
 namespace ProiectSOFT.Controllers
@@ -16,25 +17,21 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _organisationService.GetAll();
+            var route = Request.Path.Value;
 
-            if (cases == null)
-                return BadRequest();
+            var organisations = await _organisationService.GetAll(filter, route);
 
-            return Ok(cases);
+            return Ok(organisations);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            var _case = await _organisationService.GetById(id);
+            var organisation = await _organisationService.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<OrganisationGetModel>(organisation));
         }
 
         [HttpPost("AddOrganisation")]

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.DonationModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.DonationsServices;
 
 namespace ProiectSOFT.Controllers
@@ -16,25 +17,21 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _donationServices.GetAll();
+            var route = Request.Path.Value;
 
-            if (cases == null)
-                return BadRequest();
+            var donations = await _donationServices.GetAll(filter, route);
 
-            return Ok(cases);
+            return Ok(donations);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            var _case = await _donationServices.GetById(id);
+            var donation = await _donationServices.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<DonationGetModel>(donation));
         }
 
         [HttpPost("AddDonation")]

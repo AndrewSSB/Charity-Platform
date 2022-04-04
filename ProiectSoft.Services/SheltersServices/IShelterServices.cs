@@ -1,4 +1,5 @@
 ﻿using ProiectSoft.DAL.Models.ShelterModels;
+using ProiectSoft.DAL.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace ProiectSoft.Services.SheltersServices
 {
     public interface IShelterServices
     {
-        Task<List<ShelterGetModel>> GetAll();
+        Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route);
         Task<ShelterGetModel> GetById(int id);
         Task Create(ShelterPostModel model);
         Task Update(ShelterPutModel model, int id);

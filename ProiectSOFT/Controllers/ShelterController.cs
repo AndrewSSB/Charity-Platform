@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.ShelterModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.SheltersServices;
 
 namespace ProiectSOFT.Controllers
@@ -16,25 +17,21 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _shelterServices.GetAll();
+            var route = Request.Path.Value;
 
-            if (cases == null)
-                return BadRequest();
+            var shelters = await _shelterServices.GetAll(filter, route);
 
-            return Ok(cases);
+            return Ok(shelters);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            var _case = await _shelterServices.GetById(id);
+            var shelter = await _shelterServices.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<ShelterGetModel>(shelter));
         }
 
         [HttpPost("AddShelter")]

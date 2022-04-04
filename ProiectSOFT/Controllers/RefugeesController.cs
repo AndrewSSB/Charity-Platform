@@ -25,18 +25,15 @@ namespace ProiectSOFT.Controllers
         {
             var route = Request.Path.Value;
             
-            var cases = await _refugeeServices.GetAll(filter, route);
+            var refugees = await _refugeeServices.GetAll(filter, route);
 
-            return Ok(cases);
+            return Ok(refugees);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
             var _case = await _refugeeServices.GetById(id);
-
-            if (_case == null)
-                return BadRequest();
 
             return Ok(new Response<RefugeeGetModel>(_case));
         }

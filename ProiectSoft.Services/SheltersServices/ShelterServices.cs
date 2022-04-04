@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.ShelterModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +16,11 @@ namespace ProiectSoft.Services.SheltersServices
     public class ShelterServices : IShelterServices
     {
         private readonly AppDbContext _context;
+        private readonly IUriServices _uriServices;
 
-        public ShelterServices(AppDbContext context)
+        public ShelterServices(AppDbContext context, IUriServices uriServices)
         {
+            _uriServices = uriServices;
             _context = context;
         }
 
@@ -58,9 +63,9 @@ namespace ProiectSoft.Services.SheltersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<ShelterGetModel>> GetAll()
+        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Shelters.Select(x => new ShelterGetModel
+            var shelters = await _context.Shelters.Select(x => new ShelterGetModel
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -69,7 +74,16 @@ namespace ProiectSoft.Services.SheltersServices
                 Phone = x.Phone,
                 LocationId = x.LocationId,
                 OrganisationId = x.OrganisationId
-            }).ToListAsync();
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var shelterListCount = await _context.Cases.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<ShelterGetModel>(shelters, filter, shelterListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<ShelterGetModel> GetById(int id)

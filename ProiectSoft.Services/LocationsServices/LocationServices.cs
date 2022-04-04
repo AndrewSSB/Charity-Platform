@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.LocationModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +16,12 @@ namespace ProiectSoft.Services.LocationsServices
     public class LocationServices : ILocationServices
     {
         private readonly AppDbContext _context;
+        private readonly IUriServices _uriServices;
 
-        public LocationServices(AppDbContext context)
+        public LocationServices(AppDbContext context, IUriServices uriServices)
         {
             _context = context;
+            _uriServices = uriServices;
         }
 
         public async Task Create(LocationPostModel model)
@@ -48,16 +53,25 @@ namespace ProiectSoft.Services.LocationsServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<LocationGetModel>> GetAll()
+        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Locations.Select(x => new LocationGetModel
+            var locations = await _context.Locations.Select(x => new LocationGetModel
             {
                 Id = x.Id,
                 County = x.County,
                 City = x.City,
                 Street = x.Street,
                 Number= x.Number
-            }).ToListAsync();
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var locationsListCount = await _context.Cases.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<LocationGetModel>(locations, filter, locationsListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<LocationGetModel> GetById(int id)

@@ -1,4 +1,5 @@
 ﻿using ProiectSoft.DAL.Models.OrganisationModels;
+using ProiectSoft.DAL.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace ProiectSoft.Services.OrganizationsService
 {
     public interface IOrganisationService
     {
-        Task<List<OrganisationGetModel>> GetAll();
+        Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route);
         Task<OrganisationGetModel> GetById(int id);
         Task Create(OrganisationPostModel model);
         Task Update(OrganisationPutModel model, int id);

@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.UserModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UsersServices;
 
 namespace ProiectSOFT.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class UserController : Controller
     {
         private readonly IUserServices _userServices;
@@ -16,25 +19,20 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _userServices.GetAll();
+            var route = Request.Path.Value;
+            var users = await _userServices.GetAll(filter, route);
 
-            if (cases == null)
-                return BadRequest();
-
-            return Ok(cases);
+            return Ok(users);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] Guid id)
         {
-            var _case = await _userServices.GetById(id);
+            var user = await _userServices.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<UserGetModel>(user));
         }
 
         [HttpPut("UpdateUser")]

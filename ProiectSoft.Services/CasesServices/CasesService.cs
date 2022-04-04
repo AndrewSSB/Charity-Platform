@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.CasesModels;
+using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +16,11 @@ namespace ProiectSoft.Services.CasesServices
     public class CasesService : ICasesServices
     {
         private readonly AppDbContext _context;
-
-        public CasesService(AppDbContext context)
+        private readonly IUriServices _uriServices;
+        public CasesService(AppDbContext context, IUriServices uriServices)
         {
             _context = context;
+            _uriServices = uriServices;
         }
 
         public async Task Create(CasesPostModel model)
@@ -51,9 +55,9 @@ namespace ProiectSoft.Services.CasesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<CasesGetModel>> GetAll()
+        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Cases.Select(x => new CasesGetModel
+            var casesList = await _context.Cases.Select(x => new CasesGetModel
             {
                 Id = x.Id.ToString(),
                 caseName = x.caseName,
@@ -63,7 +67,16 @@ namespace ProiectSoft.Services.CasesServices
                 closed = x.closed,
                 Created = x.DateCreated.ToString(),
                 Modified = x.DateModified.ToString(),
-            }).ToListAsync();
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var casesListCount = await _context.Cases.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<CasesGetModel>(casesList, filter, casesListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<CasesGetModel> GetById(int id)

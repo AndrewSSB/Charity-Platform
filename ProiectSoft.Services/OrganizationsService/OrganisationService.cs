@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.OrganisationModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.OrganizationsService;
+using ProiectSoft.Services.UriServicess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +17,12 @@ namespace ProiectSoft.Services.OrganizationService
     public class OrganisationService : IOrganisationService
     {
         private readonly AppDbContext _context;
+        private readonly IUriServices _uriServices;
 
-        public OrganisationService(AppDbContext context)
+        public OrganisationService(AppDbContext context, IUriServices uriServices)
         {
             _context = context;
+            _uriServices = uriServices;
         }
 
         public async Task Create(OrganisationPostModel model)
@@ -55,9 +60,9 @@ namespace ProiectSoft.Services.OrganizationService
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<OrganisationGetModel>> GetAll()
+        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            return await _context.Organisations.Select(x => new OrganisationGetModel
+            var organisations = await _context.Organisations.Select(x => new OrganisationGetModel
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -65,7 +70,16 @@ namespace ProiectSoft.Services.OrganizationService
                 Phone = x.Phone,
                 Details = x.Details,
                 CasesId = x.CasesId
-            }).ToListAsync();
+            })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var orgListCount = await _context.Cases.CountAsync();
+
+            var pagedResponse = PaginationHelper.CreatePagedReponse<OrganisationGetModel>(organisations, filter, orgListCount, _uriServices, route);
+
+            return pagedResponse;
         }
 
         public async Task<OrganisationGetModel> GetById(int id)

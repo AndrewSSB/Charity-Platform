@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.VolunteerModels;
+using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.VolunteersServices;
 
 namespace ProiectSOFT.Controllers
@@ -16,25 +17,21 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var cases = await _volunteerServices.GetAll();
+            var route = Request.Path.Value;
 
-            if (cases == null)
-                return BadRequest();
+            var volunteers = await _volunteerServices.GetAll(filter, route);
 
-            return Ok(cases);
+            return Ok(volunteers);
         }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            var _case = await _volunteerServices.GetById(id);
+            var volunteer = await _volunteerServices.GetById(id);
 
-            if (_case == null)
-                return BadRequest();
-
-            return Ok(_case);
+            return Ok(new Response<VolunteerGetModel>(volunteer));
         }
 
         [HttpPost("AddVolunteer")]
