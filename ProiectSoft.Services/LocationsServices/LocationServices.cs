@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -17,24 +18,20 @@ namespace ProiectSoft.Services.LocationsServices
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
+        private readonly IMapper _mapper;
 
-        public LocationServices(AppDbContext context, IUriServices uriServices)
+        public LocationServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
         {
             _context = context;
             _uriServices = uriServices;
+            _mapper = mapper;   
         }
 
         public async Task Create(LocationPostModel model)
         {
             if (model == null) { return; }
 
-            var location = new Location
-            {
-                County = model.County,
-                City = model.City,
-                Street = model.Street,
-                Number = model.Number,
-            };
+            var location = _mapper.Map<Location>(model);
 
             await _context.AddAsync(location);
             await _context.SaveChangesAsync();
@@ -55,21 +52,22 @@ namespace ProiectSoft.Services.LocationsServices
 
         public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            var locations = await _context.Locations.Select(x => new LocationGetModel
-            {
-                Id = x.Id,
-                County = x.County,
-                City = x.City,
-                Street = x.Street,
-                Number= x.Number
-            })
+            var locations = await _context.Locations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var locationModels = new List<LocationGetModel>();
+
+            foreach (var location in locations)
+            {
+                var locationModel = _mapper.Map<LocationGetModel>(location);
+                locationModels.Add(locationModel);
+            }
+
             var locationsListCount = await _context.Cases.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<LocationGetModel>(locations, filter, locationsListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<LocationGetModel>(locationModels, filter, locationsListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -82,26 +80,19 @@ namespace ProiectSoft.Services.LocationsServices
             {
                 return new LocationGetModel();
             }
-            return new LocationGetModel
-            {
-                Id = location.Id,
-                County = location.County,
-                City=location.City,
-                Street=location.Street,
-                Number = location.Number
-            };
+
+            var locationGetModel = _mapper.Map<LocationGetModel>(location);
+
+            return locationGetModel;
         }
 
         public async Task Update(LocationPutModel model, int id)
         {
             var location = await _context.Locations.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (model == null || location == null) { return; }
-            
-            location.County = model.County;
-            location.City = model.City;
-            location.Street = model.Street;
-            location.Number = model.Number;
+            if (model == null || location == null) { return; }       
+
+            _mapper.Map<LocationPutModel, Location>(model, location);
 
             await _context.SaveChangesAsync();
         }

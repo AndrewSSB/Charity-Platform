@@ -9,6 +9,7 @@ using ProiectSoft.BLL.Interfaces;
 using ProiectSoft.BLL.Managers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
+using ProiectSoft.DAL.Mappings;
 using ProiectSoft.DAL.Seeders;
 using ProiectSoft.Services;
 using ProiectSoft.Services.EmailService;
@@ -21,8 +22,6 @@ using System.Configuration;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Sendgrid Statement
 
 // Connection to database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -134,7 +133,8 @@ builder.Services.AddTransient<ShelterSeeder>();
 builder.Services.AddTransient<RefugeesSeeder>();
 builder.Services.AddTransient<RoleSeeder>();
 
-//Identity
+//Add mappers
+builder.Services.AddMappings();
 
 
 var app = builder.Build();

@@ -21,9 +21,11 @@ namespace ProiectSoft.Services.EmailService
 
         public async Task SendEmailLogin(string toEmail, string subject, string content)
         {
-            var apiKey = _configuration["SendApiKey"];
+            var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+            
+            
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("marius.ene@s.unibuc.ro", "Big heart backpacks");
+            var from = new EmailAddress("eneandrei0228@gmail.com", "Big heart backpacks");
             var to = new EmailAddress(toEmail);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, content, content);
             var response = await client.SendEmailAsync(msg);
@@ -31,18 +33,18 @@ namespace ProiectSoft.Services.EmailService
 
         public async Task SendEmailRegister(string toEmail, string name)
         {
-            var apiKey = _configuration["SendApiKey"];
+            var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             var sendGridClient = new SendGridClient(apiKey);
             var sendGridMessage = new SendGridMessage();
-            sendGridMessage.SetFrom("marius.ene@s.unibuc.ro", "Big heart backpacks");
+            sendGridMessage.SetFrom("eneandrei0228@gmail.com", "Big heart backpacks");
             sendGridMessage.AddTo(toEmail);
-            var templateKey = _configuration["TemplateKey"];
+            var templateKey = Environment.GetEnvironmentVariable("SENDGRID_TEMPLATE_ID");
             sendGridMessage.SetSubject($"Welcome, {name}");
             sendGridMessage.SetTemplateId(templateKey);
             sendGridMessage.SetTemplateData(new
             {
                 name = "Big heart backpacks",
-                url = "https://mc.sendgrid.com/dynamic-templates/d-d8a411bbe13d4940b887959baa2f8ab2/version/03a96972-ffb4-4052-aeef-fbee5b8828fe"
+                url = $"https://mc.sendgrid.com/dynamic-templates/{templateKey}"
             });
 
             var response = await sendGridClient.SendEmailAsync(sendGridMessage);

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -17,11 +18,12 @@ namespace ProiectSoft.Services.SheltersServices
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
-
-        public ShelterServices(AppDbContext context, IUriServices uriServices)
+        private readonly IMapper _mapper;
+        public ShelterServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
         {
             _uriServices = uriServices;
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task Create(ShelterPostModel model)
@@ -34,16 +36,8 @@ namespace ProiectSoft.Services.SheltersServices
             if (location == null) { return; }
 
             if (organisation == null) { return; }
-            
-            var shelter = new Shelter
-            {
-                Name = model.Name,
-                availableSpace = model.availableSpace,
-                Email = model.Email,
-                Phone = model.Phone,
-                LocationId = model.LocationId,
-                OrganisationId = model.OrganisationId
-            };
+        
+            var shelter = _mapper.Map<Shelter>(model);
 
             await _context.AddAsync(shelter);
             await _context.SaveChangesAsync();
@@ -65,23 +59,22 @@ namespace ProiectSoft.Services.SheltersServices
 
         public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            var shelters = await _context.Shelters.Select(x => new ShelterGetModel
-            {
-                Id = x.Id,
-                Name = x.Name,
-                availableSpace = x.availableSpace,
-                Email = x.Email,
-                Phone = x.Phone,
-                LocationId = x.LocationId,
-                OrganisationId = x.OrganisationId
-            })
+            var shelters = await _context.Shelters
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var shelterModels = new List<ShelterGetModel>();
+
+            foreach (var shetler in shelters)
+            {
+                var shelterModel = _mapper.Map<ShelterGetModel>(shetler);
+                shelterModels.Add(shelterModel);
+            }
+
             var shelterListCount = await _context.Cases.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<ShelterGetModel>(shelters, filter, shelterListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<ShelterGetModel>(shelterModels, filter, shelterListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -94,16 +87,10 @@ namespace ProiectSoft.Services.SheltersServices
             {
                 return new ShelterGetModel();
             }
-            return new ShelterGetModel
-            {
-                Id = shelter.Id,
-                Name = shelter.Name,
-                availableSpace = shelter.availableSpace,
-                Email = shelter.Email,
-                Phone = shelter.Phone,
-                LocationId = shelter.LocationId,
-                OrganisationId = shelter.OrganisationId
-            };
+
+            var shelterGetModel = _mapper.Map<ShelterGetModel>(shelter);
+
+            return shelterGetModel;
         }
 
         public async Task Update(ShelterPutModel model, int id)

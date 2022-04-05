@@ -14,5 +14,7 @@ namespace ProiectSoft.DAL.Models.RefugeeModels
         public int? Age { get; set; }
         public string Details { get; set; }
         public int ShelterId { get; set; }
+        public DateTime? DateModified { get; set; }
+        public DateTime? DateCreated { get; set; }
     }
 }

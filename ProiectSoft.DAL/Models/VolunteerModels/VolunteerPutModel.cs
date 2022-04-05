@@ -13,5 +13,6 @@ namespace ProiectSoft.DAL.Models.VolunteerModels
         public string Position { get; set; }
         public string contactDetails { get; set; }
         public int OrganisationId { get; set; }
+        public DateTime? DateModified { get; set; }
     }
 }

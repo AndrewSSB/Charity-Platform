@@ -14,5 +14,7 @@ namespace ProiectSoft.DAL.Models.ShelterModels
         public string Phone { get; set; }
         public int LocationId { get; set; }
         public int OrganisationId { get; set; }
+        public DateTime? DateModified { get; set; }
+        public DateTime? DateCreated { get; set; }
     }
 }

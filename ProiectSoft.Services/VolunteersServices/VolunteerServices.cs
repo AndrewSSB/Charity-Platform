@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -17,11 +18,13 @@ namespace ProiectSoft.Services.VolunteersServices
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
+        private readonly IMapper _mapper;
 
-        public VolunteerServices(AppDbContext context, IUriServices uriServices)
+        public VolunteerServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
         {
             _uriServices = uriServices;
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task Create(VolunteerPostModel model)
@@ -32,14 +35,7 @@ namespace ProiectSoft.Services.VolunteersServices
 
             if (orgId == null) { return; }
 
-            var volunteer = new Volunteer
-            {
-                Name = model.Name,
-                lastName = model.lastName,
-                Position = model.Position,
-                contactDetails = model.contactDetails,
-                OrganisationId = model.OrganisationId
-            };
+            var volunteer = _mapper.Map<Volunteer>(model);
 
             await _context.AddAsync(volunteer);
             await _context.SaveChangesAsync();
@@ -61,22 +57,22 @@ namespace ProiectSoft.Services.VolunteersServices
 
         public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            var volunteers = await _context.Volunteers.Select(x => new VolunteerGetModel
-            {
-                Id = x.Id,
-                Name = x.Name,
-                lastName = x.lastName,
-                Position = x.Position,
-                contactDetails = x.contactDetails,
-                OrganisationId = x.OrganisationId
-            })
+            var volunteers = await _context.Volunteers
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var volunteerModels = new List<VolunteerGetModel>();
+
+            foreach (var volunteer in volunteers)
+            {
+                var volunteerModel = _mapper.Map<VolunteerGetModel>(volunteer);
+                volunteerModels.Add(volunteerModel);
+            }
+
             var volunteerListCount = await _context.Cases.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<VolunteerGetModel>(volunteers, filter, volunteerListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<VolunteerGetModel>(volunteerModels, filter, volunteerListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -89,15 +85,10 @@ namespace ProiectSoft.Services.VolunteersServices
             {
                 return new VolunteerGetModel();
             }
-            return new VolunteerGetModel
-            {
-                Id = volunteer.Id,
-                Name = volunteer.Name,
-                lastName = volunteer.lastName,
-                Position = volunteer.Position,
-                contactDetails = volunteer.contactDetails,
-                OrganisationId = volunteer.OrganisationId
-            };
+
+            var volunteerGetModel = _mapper.Map<VolunteerGetModel>(volunteer);
+
+            return volunteerGetModel;
         }
 
         public async Task Update(VolunteerPutModel model, int id)

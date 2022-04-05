@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -17,11 +18,13 @@ namespace ProiectSoft.Services.UsersServices
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
+        private readonly IMapper _mapper;
 
-        public UserServices(AppDbContext context, IUriServices uriServices)
+        public UserServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
         {
             _uriServices = uriServices;
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task Delete(Guid id)
@@ -39,22 +42,22 @@ namespace ProiectSoft.Services.UsersServices
 
         public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            var users = await _context.Users.Select(x => new UserGetModel
-            {
-                Id = x.Id.ToString(),
-                UserName = x.UserName,
-                email = x.Email,
-                Type = x.Type,
-                DateCreated = x.DateCreated.ToString(),
-                DateModified = x.DateModified.ToString(),
-            })
+            var users = await _context.Users
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var userModels = new List<UserGetModel>();
+
+            foreach (var user in users)
+            {
+                var userModel = _mapper.Map<UserGetModel>(user);
+                userModels.Add(userModel);
+            }
+
             var usersListCount = await _context.Cases.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<UserGetModel>(users, filter, usersListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<UserGetModel>(userModels, filter, usersListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -68,15 +71,7 @@ namespace ProiectSoft.Services.UsersServices
                 return new UserGetModel();
             }
 
-            var userGetModel = new UserGetModel
-            {
-                Id = user.Id.ToString(),
-                UserName = user.UserName,
-                email = user.Email,
-                Type = user.Type,
-                DateCreated = user.DateCreated.ToString(),
-                DateModified = user.DateModified.ToString(),
-            };
+            var userGetModel = _mapper.Map<UserGetModel>(user);
 
             return userGetModel;
         }
@@ -90,13 +85,7 @@ namespace ProiectSoft.Services.UsersServices
                 return;
             }
 
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.UserName = model.UserName;
-            user.Email = model.email;
-            user.Type = model.Type;
-            user.DateCreated = model.DateCreated == null ? DateTime.Now : model.DateCreated;
-            user.DateModified = DateTime.Now;
+            _mapper.Map<UserPutModel, User>(model, user);
 
             await _context.SaveChangesAsync();
         }

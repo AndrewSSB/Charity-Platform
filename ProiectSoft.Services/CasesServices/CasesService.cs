@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -17,26 +18,19 @@ namespace ProiectSoft.Services.CasesServices
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
-        public CasesService(AppDbContext context, IUriServices uriServices)
+        private readonly IMapper _mapper;
+        public CasesService(AppDbContext context, IUriServices uriServices, IMapper mapper)
         {
             _context = context;
             _uriServices = uriServices;
+            _mapper = mapper;   
         }
 
         public async Task Create(CasesPostModel model)
         {
-            if (model == null) { return; }
-           
-            var _case = new Cases
-            {   
-                caseName = model.caseName,
-                caseDetails = model.caseDetails,
-                startDate = model.startDate,
-                endDate = model.endDate,
-                closed = model.closed,
-                DateCreated = model.created,
-                DateModified = model.modified
-            };
+            if (model == null) { return; }       
+
+            var _case = _mapper.Map<Cases>(model);
 
             await _context.AddAsync(_case);
             await _context.SaveChangesAsync();
@@ -57,24 +51,22 @@ namespace ProiectSoft.Services.CasesServices
 
         public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            var casesList = await _context.Cases.Select(x => new CasesGetModel
-            {
-                Id = x.Id.ToString(),
-                caseName = x.caseName,
-                caseDetails = x.caseDetails,
-                startDate = x.startDate.ToString(),
-                endDate = x.endDate.ToString(),
-                closed = x.closed,
-                Created = x.DateCreated.ToString(),
-                Modified = x.DateModified.ToString(),
-            })
+            var cases = await _context.Cases
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var casesModels = new List<CasesGetModel>();
+
+            foreach (var _case in cases)
+            {
+                var _caseModel = _mapper.Map<CasesGetModel>(_case);
+                casesModels.Add(_caseModel);
+            }
+
             var casesListCount = await _context.Cases.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<CasesGetModel>(casesList, filter, casesListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<CasesGetModel>(casesModels, filter, casesListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -88,19 +80,9 @@ namespace ProiectSoft.Services.CasesServices
                 return new CasesGetModel();
             }
 
-            var casesGetModel = new CasesGetModel
-            {
-                Id = _case.Id.ToString(),
-                caseName = _case.caseName,
-                caseDetails = _case.caseDetails,
-                startDate = _case.startDate.ToString(),
-                endDate = _case.endDate.ToString(),
-                closed = _case.closed,
-                Created = _case.DateCreated.ToString(),
-                Modified = _case.DateModified.ToString()
-            };
+            var caseGetModel = _mapper.Map<CasesGetModel>(_case);
 
-            return casesGetModel;
+            return caseGetModel;
         }
 
         public async Task Update(CasesPutModel model, int id)
@@ -112,12 +94,7 @@ namespace ProiectSoft.Services.CasesServices
                 return;
             }
 
-            _case.caseName = model.caseName;
-            _case.caseDetails = model.caseDetails;
-            _case.startDate = model.startDate;
-            _case.endDate = model.endDate;
-            _case.closed = model.closed;
-            _case.DateModified = DateTime.Now; //se salveaza automat cand ai facut modificarea
+            _mapper.Map<CasesPutModel, Cases>(model, _case);
 
             await _context.SaveChangesAsync();
         }

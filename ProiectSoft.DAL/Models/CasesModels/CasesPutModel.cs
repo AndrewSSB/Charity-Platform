@@ -13,6 +13,6 @@ namespace ProiectSoft.DAL.Models.CasesModels
         public DateTime? startDate { get; set; }
         public DateTime? endDate { get; set; }
         public bool closed { get; set; }
-        public DateTime? Modified { get; set; }
+        public DateTime? DateModified { get; set; }
     }
 }

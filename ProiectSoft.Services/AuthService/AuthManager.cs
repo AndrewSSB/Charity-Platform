@@ -100,7 +100,7 @@ namespace ProiectSoft.BLL.Managers
             {
                 await _userManager.AddToRoleAsync(user, registerModel.Role);
 
-                await _emailService.SendEmailRegister(user.Email, user.UserName);
+                await _emailService.SendEmailRegister(user.Email, user.UserName); // dupa ce te inregistrezi primesti un email de welcome (am luat un template gratis de pe net sa para mai dragut)
 
                 return true;
             }

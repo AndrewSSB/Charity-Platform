@@ -12,5 +12,6 @@ namespace ProiectSoft.DAL.Models.LocationModels
         public string City { get; set; }
         public string Street { get; set; }
         public int? Number { get; set; }
+        public DateTime? DateModified { get; set; }
     }
 }

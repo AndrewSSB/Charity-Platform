@@ -14,5 +14,7 @@ namespace ProiectSoft.DAL.Models.OrganisationModels
         public string Phone { get; set; }
         public string Details { get; set; }
         public int CasesId { get; set; }
+        public DateTime? DateModified { get; set; }
+        public DateTime? DateCreated { get; set; }
     }
 }

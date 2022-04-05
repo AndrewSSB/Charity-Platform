@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -17,11 +18,13 @@ namespace ProiectSoft.Services.RefugeesServices
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriService;
+        private readonly IMapper _mapper;
 
-        public RefugeeServices(AppDbContext context, IUriServices uriService)
+        public RefugeeServices(AppDbContext context, IUriServices uriService, IMapper mapper)
         {
             _context = context;
             _uriService = uriService;
+            _mapper = mapper;   
         }
 
         public async Task Create(RefugeePostModel model)
@@ -32,14 +35,7 @@ namespace ProiectSoft.Services.RefugeesServices
 
             if (shelter == null) { return; }
 
-            var refugee = new Refugee
-            {
-                Name = model.Name,
-                lastName = model.Name,
-                Age = model.Age,
-                Details = model.Details,
-                ShelterId = model.ShelterId
-            };
+            var refugee = _mapper.Map<Refugee>(model);
 
             //de fiecare data cand adaug un refugiat, available space din shelter scade
 
@@ -73,23 +69,23 @@ namespace ProiectSoft.Services.RefugeesServices
         }
 
         public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route)
-        { 
-            var refugeesList =  await _context.Refugees.Select(x => new RefugeeGetModel
-            {
-                Id = x.Id,
-                Name = x.Name,
-                lastName = x.Name,
-                Age = x.Age,
-                Details = x.Details,
-                ShelterId = x.ShelterId
-            })
+        {
+            var refugees = await _context.Refugees
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var refugeeModels = new List<RefugeeGetModel>();
+
+            foreach (var refugee in refugees)
+            {
+                var refugeeModel = _mapper.Map<RefugeeGetModel>(refugee);
+                refugeeModels.Add(refugeeModel);
+            }
+
             var refugeesListCount = await _context.Refugees.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<RefugeeGetModel>(refugeesList, filter, refugeesListCount, _uriService, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<RefugeeGetModel>(refugeeModels, filter, refugeesListCount, _uriService, route);
 
             return pagedResponse;
         }
@@ -123,7 +119,7 @@ namespace ProiectSoft.Services.RefugeesServices
             refugee.lastName = model.lastName;
             refugee.Age = model.Age;
             refugee.Details = model.Details;
-
+            //aici la fel
             var refugeeShel = await _context.Refugees.FirstOrDefaultAsync(x => x.ShelterId == model.ShelterId);
 
             if (refugeeShel != null)

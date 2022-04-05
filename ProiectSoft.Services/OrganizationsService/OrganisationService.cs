@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
@@ -18,11 +19,13 @@ namespace ProiectSoft.Services.OrganizationService
     {
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
+        private readonly IMapper _mapper;
 
-        public OrganisationService(AppDbContext context, IUriServices uriServices)
+        public OrganisationService(AppDbContext context, IUriServices uriServices, IMapper mapper)
         {
             _context = context;
             _uriServices = uriServices;
+            _mapper = mapper;
         }
 
         public async Task Create(OrganisationPostModel model)
@@ -33,14 +36,7 @@ namespace ProiectSoft.Services.OrganizationService
 
             if (caseId == null) { return; }
 
-            var organisation = new Organisation
-            {
-                Name = model.Name,
-                Email = model.Email,
-                Phone = model.Phone,
-                Details = model.Details,
-                CasesId = model.CasesId
-            };
+            var organisation = _mapper.Map<Organisation>(model);
 
             await _context.AddAsync(organisation);
             await _context.SaveChangesAsync();
@@ -62,22 +58,22 @@ namespace ProiectSoft.Services.OrganizationService
 
         public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            var organisations = await _context.Organisations.Select(x => new OrganisationGetModel
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Email = x.Email,
-                Phone = x.Phone,
-                Details = x.Details,
-                CasesId = x.CasesId
-            })
+            var organisations = await _context.Organisations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
+            var organisationModels = new List<OrganisationGetModel>();
+
+            foreach (var organisation in organisations)
+            {
+                var _caseModel = _mapper.Map<OrganisationGetModel>(organisation);
+                organisationModels.Add(_caseModel);
+            }
+
             var orgListCount = await _context.Cases.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<OrganisationGetModel>(organisations, filter, orgListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<OrganisationGetModel>(organisationModels, filter, orgListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -90,15 +86,10 @@ namespace ProiectSoft.Services.OrganizationService
             {
                 return new OrganisationGetModel();
             }
-            return new OrganisationGetModel
-            {
-                Id = organisation.Id,
-                Name = organisation.Name,
-                Email = organisation.Email,
-                Phone = organisation.Phone,
-                Details = organisation.Details,
-                CasesId = organisation.CasesId
-            };
+
+            var organisationGetModel = _mapper.Map<OrganisationGetModel>(organisation);
+
+            return organisationGetModel;
         }
 
         public async Task Update(OrganisationPutModel model, int id)
