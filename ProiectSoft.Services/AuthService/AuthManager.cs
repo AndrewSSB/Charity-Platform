@@ -6,6 +6,7 @@ using ProiectSoft.BLL.Models.Login_Model;
 using ProiectSoft.BLL.Models.RegisterModel;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
+using ProiectSoft.Services.EmailServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,15 +21,18 @@ namespace ProiectSoft.BLL.Managers
         private readonly SignInManager<User> _signInManager;
         private readonly ITokenHelper _tokenHelper;
         private readonly AppDbContext _appDbContext;
+        private readonly IEmailServices _emailService;
         public AuthManager(UserManager<User> userManager,
                SignInManager<User> signInManager,
                ITokenHelper tokenHelper,
-               AppDbContext appDbContext)
+               AppDbContext appDbContext,
+               IEmailServices emailServices)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenHelper = tokenHelper;
             _appDbContext = appDbContext;
+            _emailService = emailServices;
         }
 
         public async Task<ResponseLogin> Login(LoginModel loginModel)
@@ -59,6 +63,8 @@ namespace ProiectSoft.BLL.Managers
 
                 if (!refreshTokenResult) { return new ResponseLogin { Success = false }; }
 
+                await _emailService.SendEmailLogin(user.Email, "New login!", "<h1>Hey! \nNew login to your account noticed</h1><p>New login to your account at " + DateTime.Now + "</p>");
+                await _emailService.SendEmailRegister(user.Email, loginModel.UserName);
                 return new ResponseLogin
                 {
                     Success = true,
@@ -93,6 +99,8 @@ namespace ProiectSoft.BLL.Managers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, registerModel.Role);
+
+                await _emailService.SendEmailRegister(user.Email, user.UserName);
 
                 return true;
             }

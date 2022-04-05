@@ -11,14 +11,18 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Seeders;
 using ProiectSoft.Services;
+using ProiectSoft.Services.EmailService;
+using ProiectSoft.Services.EmailServices;
 using ProiectSoft.Services.UriServices;
 using ProiectSoft.Services.UriServicess;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System.Configuration;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Sendgrid Statement
 
 // Connection to database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -117,8 +121,9 @@ builder.Services.AddSwaggerGen(opt =>
 
 //Call Services
 builder.Services.AddServices();
-builder.Services.AddTransient<ITokenHelper, TokenHelper>();
+builder.Services.AddTransient<ITokenHelper, TokenHelper>(); //probleme cu ele in extensie, le las aici
 builder.Services.AddTransient<IAuthManager, AuthManager>();
+builder.Services.AddTransient<IEmailServices, EmailServices>();
 
 
 //Call seeders
