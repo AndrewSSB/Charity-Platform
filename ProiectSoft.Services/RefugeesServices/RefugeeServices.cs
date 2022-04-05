@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.RefugeeModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UriServicess;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,21 +22,31 @@ namespace ProiectSoft.Services.RefugeesServices
         private readonly AppDbContext _context;
         private readonly IUriServices _uriService;
         private readonly IMapper _mapper;
+        private readonly ILogger<RefugeeServices> _logger;
 
-        public RefugeeServices(AppDbContext context, IUriServices uriService, IMapper mapper)
+        public RefugeeServices(AppDbContext context, IUriServices uriService, IMapper mapper, ILogger<RefugeeServices> logger)
         {
             _context = context;
             _uriService = uriService;
             _mapper = mapper;   
+            _logger = logger;
         }
 
         public async Task Create(RefugeePostModel model)
         {
-            if (model == null) { return; }
+            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:Create");
+
+            if (model == null) {
+                _logger.LogError("OPS! It seems you doesn't exist");
+                return; 
+            }
 
             var shelter = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId);
 
-            if (shelter == null) { return; }
+            if (shelter == null) {
+                _logger.LogError($"OPS! {model.ShelterId} does not exist in our database");
+                return; 
+            }
 
             var refugee = _mapper.Map<Refugee>(model);
 
@@ -50,10 +63,13 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task Delete(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:Delete");
+
             var refugee = await _context.Refugees.FirstOrDefaultAsync(x => x.Id == id);
 
             if (refugee == null)
             {
+                _logger.LogError($"OPS! Refugee with id:{id} does not exist in our database");
                 return;
             }
 
@@ -70,6 +86,8 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route)
         {
+            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:GetAll");
+
             var refugees = await _context.Refugees
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -92,28 +110,31 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task<RefugeeGetModel> GetById(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:GetById");
+
             var refugee = await _context.Refugees.FirstOrDefaultAsync(x => x.Id == id);
 
             if (refugee == null)
             {
+                _logger.LogError($"OPS! Refugee with id:{id} does not exist in our database");
                 return new RefugeeGetModel();
             }
-            return new RefugeeGetModel
-            {
-                Id = refugee.Id,
-                Name = refugee.Name,
-                lastName = refugee.Name,
-                Age = refugee.Age,
-                Details = refugee.Details,
-                ShelterId = refugee.ShelterId
-            };
+            
+            var refugeeGetModel = _mapper.Map<RefugeeGetModel>(refugee);
+
+            return refugeeGetModel;
         }
 
         public async Task Update(RefugeePutModel model, int id)
         {
+            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:Update");
+
             var refugee = await _context.Refugees.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (model == null || refugee == null) { return; }
+            if (model == null || refugee == null) {
+                _logger.LogError($"OPS! {JsonConvert.SerializeObject(model)} is null or we can't find the refugee with id:{id}");
+                return; 
+            }
 
             refugee.Name = model.Name;
             refugee.lastName = model.lastName;

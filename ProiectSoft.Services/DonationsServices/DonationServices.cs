@@ -59,17 +59,6 @@ namespace ProiectSoft.Services.DonationsServices
 
         public async Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            /*var donations = await _context.Donations.Select(x => new DonationGetModel
-            {
-                Id = x.Id,
-                donation = x.donation,
-                UserId = x.UserId,
-                OrganisationId = x.OrganisationId
-            })
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToListAsync(); */
-
             var donations = await _context.Donations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
