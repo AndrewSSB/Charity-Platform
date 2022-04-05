@@ -64,7 +64,7 @@ namespace ProiectSoft.BLL.Managers
                 if (!refreshTokenResult) { return new ResponseLogin { Success = false }; }
 
                 await _emailService.SendEmailLogin(user.Email, "New login!", "<h1>Hey! \nNew login to your account noticed</h1><p>New login to your account at " + DateTime.Now + "</p>");
-                //await _emailService.SendEmailRegister(user.Email, loginModel.UserName); e pentru test mai rapid
+                //await _emailService.SendEmailRegister(user.Email, loginModel.UserName); //e pentru test mai rapid
                 return new ResponseLogin
                 {
                     Success = true,
