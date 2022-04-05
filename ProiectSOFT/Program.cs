@@ -9,6 +9,7 @@ using ProiectSoft.BLL.Interfaces;
 using ProiectSoft.BLL.Managers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
+using ProiectSoft.DAL.Loggers;
 using ProiectSoft.DAL.Mappings;
 using ProiectSoft.DAL.Seeders;
 using ProiectSoft.Services;
@@ -18,6 +19,7 @@ using ProiectSoft.Services.UriServices;
 using ProiectSoft.Services.UriServicess;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using Serilog;
 using System.Configuration;
 using System.Text;
 
@@ -135,6 +137,15 @@ builder.Services.AddTransient<RoleSeeder>();
 
 //Add mappers
 builder.Services.AddMappings();
+
+//UserLog
+builder.Host.UseSerilog((ctx, config) =>
+{
+    /*                config.Enrich.WithCorrelationId();*/
+    config.Enrich.FromLogContext();
+    config.ReadFrom.Configuration(builder.Configuration);
+    config.WriteTo.Console(new LogFormatter());
+});
 
 
 var app = builder.Build();

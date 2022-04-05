@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using ProiectSoft.BLL.Interfaces;
 using ProiectSoft.BLL.Models;
 using ProiectSoft.BLL.Models.Login_Model;
@@ -7,6 +9,7 @@ using ProiectSoft.BLL.Models.RegisterModel;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.Services.EmailServices;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,21 +25,26 @@ namespace ProiectSoft.BLL.Managers
         private readonly ITokenHelper _tokenHelper;
         private readonly AppDbContext _appDbContext;
         private readonly IEmailServices _emailService;
+        private readonly ILogger<AuthManager> _logger;
         public AuthManager(UserManager<User> userManager,
                SignInManager<User> signInManager,
                ITokenHelper tokenHelper,
                AppDbContext appDbContext,
-               IEmailServices emailServices)
+               IEmailServices emailServices,
+               ILogger<AuthManager> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenHelper = tokenHelper;
             _appDbContext = appDbContext;
             _emailService = emailServices;
+            _logger = logger;
         }
 
         public async Task<ResponseLogin> Login(LoginModel loginModel)
         {
+            LogContext.PushProperty("IdentificationMessage", "Found this problem in the AuthManager:Login");
+
             var user = await _userManager.FindByNameAsync(loginModel.UserName);
 
             var role = await _userManager.GetRolesAsync(user);
@@ -47,6 +55,8 @@ namespace ProiectSoft.BLL.Managers
                 {
                     Success = false
                 };
+
+                _logger.LogError($"OPS! {JsonConvert.SerializeObject(loginModel.UserName)} does not exist in our database!");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);
@@ -79,11 +89,15 @@ namespace ProiectSoft.BLL.Managers
                 {
                     Success = false
                 };
+                
+                _logger.LogError($"OPS! We couldn't log you in, {loginModel.UserName}");
             }
         }
 
         public async Task<bool> Register(RegisterModel registerModel)
         {
+            LogContext.PushProperty("IdentificationMessage", "Found this exception in the AuthManager:Register");
+
             var user = new User
             {
                 FirstName = registerModel.FirstName,
@@ -104,6 +118,8 @@ namespace ProiectSoft.BLL.Managers
 
                 return true;
             }
+
+            _logger.LogError($"OPS! It seems you have filled in the wrong details, {registerModel.UserName}");
 
             return false;
         }
