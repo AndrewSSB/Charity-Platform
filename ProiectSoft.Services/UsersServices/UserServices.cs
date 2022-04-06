@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.UserModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UriServicess;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,12 +21,13 @@ namespace ProiectSoft.Services.UsersServices
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
         private readonly IMapper _mapper;
-
-        public UserServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
+        private readonly ILogger<UserServices> _logger;
+        public UserServices(AppDbContext context, IUriServices uriServices, IMapper mapper, ILogger<UserServices> logger)
         {
             _uriServices = uriServices;
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task Delete(Guid id)
@@ -33,6 +36,7 @@ namespace ProiectSoft.Services.UsersServices
 
             if (user == null)
             {
+                _logger.LogError($"OPS! User with id:{id} does not exist in our database");
                 return;
             }
 
@@ -42,6 +46,8 @@ namespace ProiectSoft.Services.UsersServices
 
         public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetAll users request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
+
             var users = await _context.Users
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -55,7 +61,7 @@ namespace ProiectSoft.Services.UsersServices
                 userModels.Add(userModel);
             }
 
-            var usersListCount = await _context.Cases.CountAsync();
+            var usersListCount = await _context.Users.CountAsync();
 
             var pagedResponse = PaginationHelper.CreatePagedReponse<UserGetModel>(userModels, filter, usersListCount, _uriServices, route);
 
@@ -64,10 +70,13 @@ namespace ProiectSoft.Services.UsersServices
 
         public async Task<UserGetModel> GetById(Guid id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetById user request for {id}");
+
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
             if (user == null)
             {
+                _logger.LogError($"OPS! User with id:{id} does not exist in our database");
                 return new UserGetModel();
             }
 
@@ -78,10 +87,13 @@ namespace ProiectSoft.Services.UsersServices
 
         public async Task Update(UserPutModel model, Guid id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Update user request for {model.LastName}");
+
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (user == null || model == null)
+            if (user == null)
             {
+                _logger.LogError($"OPS! User with id:{id} does not exist in our database");
                 return;
             }
 

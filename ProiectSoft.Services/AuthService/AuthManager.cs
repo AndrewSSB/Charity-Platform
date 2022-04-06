@@ -43,7 +43,7 @@ namespace ProiectSoft.BLL.Managers
 
         public async Task<ResponseLogin> Login(LoginModel loginModel)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this problem in the AuthManager:Login");
+            LogContext.PushProperty("IdentificationMessage", $"Found this problem in the AuthManager:Login for user {loginModel.UserName}");
 
             var user = await _userManager.FindByNameAsync(loginModel.UserName);
 
@@ -55,8 +55,6 @@ namespace ProiectSoft.BLL.Managers
                 {
                     Success = false
                 };
-
-                _logger.LogError($"OPS! {JsonConvert.SerializeObject(loginModel.UserName)} does not exist in our database!");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);

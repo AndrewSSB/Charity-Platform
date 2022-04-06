@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ProiectSoft.Services.EmailServices;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +15,18 @@ namespace ProiectSoft.Services.EmailService
     public class EmailServices : IEmailServices
     {
         private readonly IConfiguration _configuration;
-
-        public EmailServices(IConfiguration configuration)
+        private readonly ILogger<EmailServices> _logger;
+        public EmailServices(IConfiguration configuration, ILogger<EmailServices> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task SendEmailLogin(string toEmail, string subject, string content)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Login mail failed for {toEmail}");
+
             var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-            
-            
             var client = new SendGridClient(apiKey);
             var from = new EmailAddress("eneandrei0228@gmail.com", "Big heart backpacks");
             var to = new EmailAddress(toEmail);
@@ -33,6 +36,8 @@ namespace ProiectSoft.Services.EmailService
 
         public async Task SendEmailRegister(string toEmail, string name)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Register mail failed for {toEmail}");
+
             var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             var sendGridClient = new SendGridClient(apiKey);
             var sendGridMessage = new SendGridMessage();

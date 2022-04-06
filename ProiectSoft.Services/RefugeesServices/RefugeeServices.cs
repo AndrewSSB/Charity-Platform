@@ -34,12 +34,7 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task Create(RefugeePostModel model)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:Create");
-
-            if (model == null) {
-                _logger.LogError("OPS! It seems you doesn't exist");
-                return; 
-            }
+            LogContext.PushProperty("IdentificationMessage", $"Create refugee request for {model.Name}");
 
             var shelter = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId);
 
@@ -48,11 +43,14 @@ namespace ProiectSoft.Services.RefugeesServices
                 return; 
             }
 
-            var refugee = _mapper.Map<Refugee>(model);
-
             //de fiecare data cand adaug un refugiat, available space din shelter scade
+            if (shelter.availableSpace == 0)
+            {
+                _logger.LogError($"There is no space left in {shelter.Name} for {model.Name}");
+                return;
+            }
 
-            //var space = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == model.ShelterId); //momentan o las asa, ceri ajutor mai tarziu
+            var refugee = _mapper.Map<Refugee>(model);
 
             shelter.availableSpace -= 1;
 
@@ -63,7 +61,7 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task Delete(int id)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:Delete");
+            LogContext.PushProperty("IdentificationMessage", $"Delete refugee request for {id}");
 
             var refugee = await _context.Refugees.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -86,7 +84,7 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:GetAll");
+            LogContext.PushProperty("IdentificationMessage", $"GetAll refugee request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
             var refugees = await _context.Refugees
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
@@ -110,7 +108,7 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task<RefugeeGetModel> GetById(int id)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:GetById");
+            LogContext.PushProperty("IdentificationMessage", $"GetById refugee request for {id}");
 
             var refugee = await _context.Refugees.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -127,33 +125,26 @@ namespace ProiectSoft.Services.RefugeesServices
 
         public async Task Update(RefugeePutModel model, int id)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this problem in the RefugeeService:Update");
+            LogContext.PushProperty("IdentificationMessage", $"Update refugee request for {model.Name}");
 
             var refugee = await _context.Refugees.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (model == null || refugee == null) {
-                _logger.LogError($"OPS! {JsonConvert.SerializeObject(model)} is null or we can't find the refugee with id:{id}");
+            if (refugee == null) {
+                _logger.LogError($"There is no refugee with ID:{id} in our database");
                 return; 
             }
 
-            refugee.Name = model.Name;
-            refugee.lastName = model.lastName;
-            refugee.Age = model.Age;
-            refugee.Details = model.Details;
-            //aici la fel
             var refugeeShel = await _context.Refugees.FirstOrDefaultAsync(x => x.ShelterId == model.ShelterId);
 
-            if (refugeeShel != null)
+            if (refugeeShel == null)
             {
-                refugee.ShelterId = model.ShelterId;
+                _logger.LogError($"There is no shelter with ID:{model.ShelterId}. Update failed");
+                return;
             }
 
-            await _context.SaveChangesAsync();
-        }
+            _mapper.Map<RefugeePutModel, Refugee>(model, refugee);
 
-        public async Task<int> CountAsync()
-        {
-            return await _context.Refugees.CountAsync();
+            await _context.SaveChangesAsync();
         }
     }
 }

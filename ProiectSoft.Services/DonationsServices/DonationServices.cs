@@ -1,15 +1,19 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.DonationModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UriServicess;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ProiectSoft.Services.DonationsServices
@@ -19,23 +23,31 @@ namespace ProiectSoft.Services.DonationsServices
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
         private readonly IMapper _mapper;
-        public DonationServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
+        private readonly ILogger<DonationServices> _logger;
+        public DonationServices(AppDbContext context, IUriServices uriServices, IMapper mapper, ILogger<DonationServices> logger)
         {
             _uriServices = uriServices;
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task Create(DonationPostModel model)
         {
-            if (model == null) { return; }
+            LogContext.PushProperty("IdentificationMessage", $"Create donation request for {JsonConvert.SerializeObject(model)}");
 
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.UserId);
             var organisation = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId); //daca nu exista userID-ul, sau organisationID-ul renunt
 
-            if (user == null) { return; }
+            if (user == null) {
+                _logger.LogError($"OPS! {model.UserId} does not exist in our database");
+                return; 
+            }
 
-            if (organisation == null) { return; }
+            if (organisation == null) {
+                _logger.LogError($"OPS! {model.OrganisationId} does not exist in our database");
+                return; 
+            }
             
             var donation = _mapper.Map<Donation>(model);
 
@@ -46,10 +58,13 @@ namespace ProiectSoft.Services.DonationsServices
 
         public async Task Delete(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Delete donation request for {id}");
+
             var donation = await _context.Donations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (donation == null)
             {
+                _logger.LogError($"OPS! Donation with id:{id} does not exist in our database");
                 return;
             }
 
@@ -59,6 +74,8 @@ namespace ProiectSoft.Services.DonationsServices
 
         public async Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetAll donation request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
+
             var donations = await _context.Donations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -81,10 +98,13 @@ namespace ProiectSoft.Services.DonationsServices
 
         public async Task<DonationGetModel> GetById(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetById donation request for {id}");
+
             var donation = await _context.Donations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (donation == null)
             {
+                _logger.LogError($"OPS! Donation with id:{id} does not exist in our database");
                 return new DonationGetModel();
             }
             
@@ -95,23 +115,30 @@ namespace ProiectSoft.Services.DonationsServices
 
         public async Task Update(DonationPutModel model, int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Update donation request for {JsonConvert.SerializeObject(model)}");
+
             var donation = await _context.Donations.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (model == null || donation == null) { return; }
-
-            donation.donation = model.donation;
+            if (donation == null) {
+                _logger.LogError($"There is no donation with ID:{id} in our database");
+                return; 
+            }
 
             var userId = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.UserId);                   //verific daca cheile pe care vr sa le introduc exista in baza
             var orgId = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);    //daca nu le las pe cele vechi
-            //aici nu fac mapper momentan (pana nu fac middlewear asa o las)
-            if (userId != null)
+
+            if (userId == null)
             {
-                donation.UserId = model.UserId;
+                _logger.LogError($"There is no user with ID:{userId}. Update failed");
+                return;
             }
             if (orgId != null)
             {
-                donation.OrganisationId = model.OrganisationId;
+                _logger.LogError($"There is no organisation with ID:{orgId}. Update failed");
+                return;
             }
+
+            _mapper.Map<DonationPutModel, Donation>(model, donation);
 
             await _context.SaveChangesAsync();
         }

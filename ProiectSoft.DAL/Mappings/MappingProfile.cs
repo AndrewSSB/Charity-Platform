@@ -25,7 +25,7 @@ namespace ProiectSoft.DAL.Mappings
 
             CreateMap<Donation, DonationGetModel>().ReverseMap();
             CreateMap<Donation, DonationPostModel>().ReverseMap();
-            //CreateMap<Donation, DonationPutModel>().ReverseMap();
+            CreateMap<Donation, DonationPutModel>().ReverseMap();
 
             CreateMap<Location, LocationGetModel>().ReverseMap();
             CreateMap<Location, LocationPostModel>().ReverseMap();
@@ -33,20 +33,22 @@ namespace ProiectSoft.DAL.Mappings
 
             CreateMap<Organisation, OrganisationGetModel>().ReverseMap();
             CreateMap<Organisation, OrganisationPostModel>().ReverseMap();
-            //CreateMap<Organisation, OrganisationGetModel>().ReverseMap();
+            CreateMap<Organisation, OrganisationPutModel>().ReverseMap();
 
             CreateMap<Refugee, RefugeeGetModel>().ReverseMap();
             CreateMap<Refugee, RefugeePostModel>().ReverseMap();
-            //CreateMap<Refugee, RefugeePutModel>().ReverseMap();
+            CreateMap<Refugee, RefugeePutModel>().ReverseMap();
 
             CreateMap<Shelter, ShelterGetModel>().ReverseMap();
             CreateMap<Shelter, ShelterPostModel>().ReverseMap();
+            CreateMap<Shelter, ShelterPutModel>().ReverseMap();
 
             CreateMap<User, UserGetModel>().ReverseMap();
             CreateMap<User, UserPutModel>().ReverseMap();
 
             CreateMap<Volunteer, VolunteerGetModel>().ReverseMap();
             CreateMap<Volunteer, VolunteerPostModel>().ReverseMap();
+            CreateMap<Volunteer, VolunteerPutModel>().ReverseMap();
         } 
     }
 }

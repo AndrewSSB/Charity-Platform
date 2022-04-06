@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.ShelterModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UriServicess;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,23 +21,31 @@ namespace ProiectSoft.Services.SheltersServices
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
         private readonly IMapper _mapper;
-        public ShelterServices(AppDbContext context, IUriServices uriServices, IMapper mapper)
+        private readonly ILogger<ShelterServices> _logger;
+        public ShelterServices(AppDbContext context, IUriServices uriServices, IMapper mapper, ILogger<ShelterServices> logger)
         {
             _uriServices = uriServices;
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task Create(ShelterPostModel model)
         {
-            if (model == null) { return; }
+            LogContext.PushProperty("IdentificationMessage", $"Create shelter request for {model.Name}");
 
             var location = await _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
             var organisation = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
 
-            if (location == null) { return; }
+            if (location == null) {
+                _logger.LogError($"OPS! {model.LocationId} does not exist in our database");
+                return; 
+            }
 
-            if (organisation == null) { return; }
+            if (organisation == null) {
+                _logger.LogError($"OPS! {model.OrganisationId} does not exist in our database");
+                return; 
+            }
         
             var shelter = _mapper.Map<Shelter>(model);
 
@@ -46,10 +56,13 @@ namespace ProiectSoft.Services.SheltersServices
 
         public async Task Delete(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Delete shelter request for {id}");
+
             var shelter = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == id);
 
             if (shelter == null)
             {
+                _logger.LogError($"OPS! Shelter with id:{id} does not exist in our database");
                 return;
             }
 
@@ -59,6 +72,8 @@ namespace ProiectSoft.Services.SheltersServices
 
         public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetAll shelter request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
+
             var shelters = await _context.Shelters
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -72,7 +87,7 @@ namespace ProiectSoft.Services.SheltersServices
                 shelterModels.Add(shelterModel);
             }
 
-            var shelterListCount = await _context.Cases.CountAsync();
+            var shelterListCount = await _context.Shelters.CountAsync();
 
             var pagedResponse = PaginationHelper.CreatePagedReponse<ShelterGetModel>(shelterModels, filter, shelterListCount, _uriServices, route);
 
@@ -81,10 +96,13 @@ namespace ProiectSoft.Services.SheltersServices
 
         public async Task<ShelterGetModel> GetById(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetById shelter request for {id}");
+
             var shelter = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == id);
 
             if (shelter == null)
             {
+                _logger.LogError($"OPS! Shelter with id:{id} does not exist in our database");
                 return new ShelterGetModel();
             }
 
@@ -95,26 +113,30 @@ namespace ProiectSoft.Services.SheltersServices
 
         public async Task Update(ShelterPutModel model, int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Update shelter request for {model.Name}");
+
             var shelter = await _context.Shelters.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (model == null || shelter == null) { return; }
-
-            shelter.Name = model.Name;
-            shelter.availableSpace = model.availableSpace;
-            shelter.Email = model.Email;
-            shelter.Phone = model.Phone;
+            if (shelter == null) {
+                _logger.LogError($"There is no shelter with ID:{id} in our database");
+                return; 
+            }
 
             var shelterLoc = await _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
             var shelterOrg = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
 
-            if (shelterLoc != null)
+            if (shelterLoc == null)
             {
-                shelter.LocationId = model.LocationId;
+                _logger.LogError($"There is no location with ID:{model.LocationId}. Update failed");
+                return;
             }
-            if (shelterOrg != null)
+            if (shelterOrg == null)
             {
-                shelter.OrganisationId = model.OrganisationId;
+                _logger.LogError($"There is no organisation with ID:{model.OrganisationId}. Update failed");
+                return;
             }
+
+            _mapper.Map<ShelterPutModel, Shelter>(model, shelter);
 
             await _context.SaveChangesAsync();
         }

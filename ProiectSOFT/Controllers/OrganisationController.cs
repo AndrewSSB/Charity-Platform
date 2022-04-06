@@ -2,6 +2,7 @@
 using ProiectSoft.DAL.Models.OrganisationModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.OrganizationsService;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -35,7 +36,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPost("AddOrganisation")]
-        public async Task<IActionResult> AddOrganisation([FromBody] OrganisationPostModel model)
+        public async Task<IActionResult> AddOrganisation([FromBody][Required] OrganisationPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -46,7 +47,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateOrganisation")]
-        public async Task<IActionResult> UpdateOrganisation([FromBody] OrganisationPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateOrganisation([FromBody][Required] OrganisationPutModel model, [FromQuery] int id)
         {
             await _organisationService.Update(model, id);
 

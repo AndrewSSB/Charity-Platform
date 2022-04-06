@@ -4,6 +4,7 @@ using ProiectSoft.DAL.Models.RefugeeModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.RefugeesServices;
 using ProiectSoft.Services.UriServicess;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -39,7 +40,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPost("AddRefugee")]
-        public async Task<IActionResult> AddRefugee([FromBody] RefugeePostModel model)
+        public async Task<IActionResult> AddRefugee([FromBody][Required] RefugeePostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -50,7 +51,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateRefugee")]
-        public async Task<IActionResult> UpdateRefugee([FromBody] RefugeePutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateRefugee([FromBody][Required] RefugeePutModel model, [FromQuery] int id)
         {
             await _refugeeServices.Update(model, id);
 

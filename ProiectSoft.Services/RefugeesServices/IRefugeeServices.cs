@@ -15,6 +15,5 @@ namespace ProiectSoft.Services.RefugeesServices
         Task Create(RefugeePostModel model);
         Task Update(RefugeePutModel model, int id);
         Task Delete(int id);
-        Task<int> CountAsync();
     }
 }

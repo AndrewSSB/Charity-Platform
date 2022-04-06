@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.CasesModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UriServicess;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,16 +21,18 @@ namespace ProiectSoft.Services.CasesServices
         private readonly AppDbContext _context;
         private readonly IUriServices _uriServices;
         private readonly IMapper _mapper;
-        public CasesService(AppDbContext context, IUriServices uriServices, IMapper mapper)
+        private readonly ILogger<CasesService> _logger;
+        public CasesService(AppDbContext context, IUriServices uriServices, IMapper mapper, ILogger<CasesService> logger)
         {
             _context = context;
             _uriServices = uriServices;
             _mapper = mapper;   
+            _logger = logger;   
         }
 
         public async Task Create(CasesPostModel model)
         {
-            if (model == null) { return; }       
+            LogContext.PushProperty("IdentificationMessage", $"Create case request for {model.caseName}");
 
             var _case = _mapper.Map<Cases>(model);
 
@@ -38,10 +42,13 @@ namespace ProiectSoft.Services.CasesServices
         }
         public async Task Delete(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Delete case request for {id}");
+
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
             
             if (_case == null)
             {
+                _logger.LogError($"OPS! Case with id:{id} does not exist in our database");
                 return;
             }
 
@@ -51,6 +58,8 @@ namespace ProiectSoft.Services.CasesServices
 
         public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetAll case request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
+
             var cases = await _context.Cases
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -73,10 +82,13 @@ namespace ProiectSoft.Services.CasesServices
 
         public async Task<CasesGetModel> GetById(int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"GetById case request for {id}");
+
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
 
             if (_case == null)
             {
+                _logger.LogError($"OPS! Case with id:{id} does not exist in our database");
                 return new CasesGetModel();
             }
 
@@ -87,10 +99,13 @@ namespace ProiectSoft.Services.CasesServices
 
         public async Task Update(CasesPutModel model, int id)
         {
+            LogContext.PushProperty("IdentificationMessage", $"Update case request for {model.caseName}");
+
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (_case == null || model == null)
+            if (_case == null)
             {
+                _logger.LogError($"There is no case with ID:{id} in our database");
                 return;
             }
 

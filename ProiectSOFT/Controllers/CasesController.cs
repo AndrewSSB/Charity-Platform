@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.CasesModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.CasesServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -36,7 +37,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPost("AddCase")]
-        public async Task<IActionResult> AddCase([FromBody] CasesPostModel model)
+        public async Task<IActionResult> AddCase([FromBody][Required] CasesPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -47,7 +48,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateCase")]
-        public async Task<IActionResult> UpdateCase([FromBody] CasesPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateCase([FromBody][Required] CasesPutModel model, [FromQuery] int id)
         {
             await _casesService.Update(model, id);
 
