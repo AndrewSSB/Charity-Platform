@@ -94,7 +94,7 @@ namespace ProiectSoft.Services.SheltersServices
             return pagedResponse;
         }
 
-        public async Task<ShelterGetModel> GetById(int id)
+        public async Task<Response<ShelterGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById shelter request for {id}");
 
@@ -103,12 +103,12 @@ namespace ProiectSoft.Services.SheltersServices
             if (shelter == null)
             {
                 _logger.LogError($"OPS! Shelter with id:{id} does not exist in our database");
-                return new ShelterGetModel();
+                return new Response<ShelterGetModel>(false, $"Id {id} doesn't exist");
             }
 
             var shelterGetModel = _mapper.Map<ShelterGetModel>(shelter);
 
-            return shelterGetModel;
+            return new Response<ShelterGetModel>(shelterGetModel);
         }
 
         public async Task Update(ShelterPutModel model, int id)

@@ -11,7 +11,7 @@ namespace ProiectSoft.Services.LocationsServices
     public interface ILocationServices
     {
         Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route);
-        Task<LocationGetModel> GetById(int id);
+        Task<Response<LocationGetModel>> GetById(int id);
         Task Create(LocationPostModel model);
         Task Update(LocationPutModel model, int id);
         Task Delete(int id);

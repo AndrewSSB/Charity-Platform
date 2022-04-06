@@ -33,15 +33,12 @@ namespace ProiectSOFT.Controllers
         {
             var _case = await _casesService.GetById(id);
 
-            return Ok(new Response<CasesGetModel>(_case));
+            return Ok(_case);
         }
 
         [HttpPost("AddCase")]
         public async Task<IActionResult> AddCase([FromBody][Required] CasesPostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _casesService.Create(model);
             
             return Ok();

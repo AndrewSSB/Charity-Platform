@@ -32,7 +32,7 @@ namespace ProiectSOFT.Controllers
         {
             var organisation = await _organisationService.GetById(id);
 
-            return Ok(new Response<OrganisationGetModel>(organisation));
+            return Ok(organisation);
         }
 
         [HttpPost("AddOrganisation")]

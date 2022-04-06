@@ -82,7 +82,7 @@ namespace ProiectSoft.Services.LocationsServices
             return pagedResponse;
         }
 
-        public async Task<LocationGetModel> GetById(int id)
+        public async Task<Response<LocationGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById location request for {id}");
 
@@ -91,12 +91,12 @@ namespace ProiectSoft.Services.LocationsServices
             if (location == null)
             {
                 _logger.LogError($"OPS! location with id:{id} does not exist in our database");
-                return new LocationGetModel();
+                return new Response<LocationGetModel>(false, $"Id {id} doesn't exist");
             }
 
             var locationGetModel = _mapper.Map<LocationGetModel>(location);
 
-            return locationGetModel;
+            return new Response<LocationGetModel>(locationGetModel);
         }
 
         public async Task Update(LocationPutModel model, int id)

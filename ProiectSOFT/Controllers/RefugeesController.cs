@@ -36,7 +36,7 @@ namespace ProiectSOFT.Controllers
         {
             var _case = await _refugeeServices.GetById(id);
 
-            return Ok(new Response<RefugeeGetModel>(_case));
+            return Ok(_case);
         }
 
         [HttpPost("AddRefugee")]

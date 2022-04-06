@@ -91,7 +91,7 @@ namespace ProiectSoft.Services.OrganizationService
             return pagedResponse;
         }
 
-        public async Task<OrganisationGetModel> GetById(int id)
+        public async Task<Response<OrganisationGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById organisation request for {id}");
 
@@ -100,12 +100,12 @@ namespace ProiectSoft.Services.OrganizationService
             if (organisation == null)
             {
                 _logger.LogError($"OPS! Organisation with id:{id} does not exist in our database");
-                return new OrganisationGetModel();
+                return new Response<OrganisationGetModel>(false, $"Id {id} doesn't exist");
             }
 
             var organisationGetModel = _mapper.Map<OrganisationGetModel>(organisation);
 
-            return organisationGetModel;
+            return new Response<OrganisationGetModel>(organisationGetModel);
         }
 
         public async Task Update(OrganisationPutModel model, int id)

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.UserModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.UsersServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -32,11 +33,11 @@ namespace ProiectSOFT.Controllers
         {
             var user = await _userServices.GetById(id);
 
-            return Ok(new Response<UserGetModel>(user));
+            return Ok(user);
         }
 
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromBody] UserPutModel model, [FromQuery] Guid id)
+        public async Task<IActionResult> UpdateUser([FromBody][Required] UserPutModel model, [FromQuery] Guid id)
         {
             await _userServices.Update(model, id);
 

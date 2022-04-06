@@ -18,6 +18,13 @@ namespace ProiectSoft.DAL.Wrappers
             Errors = null;
             Data = data;
         }
+
+        public Response(bool succeded, string Message)
+        {
+            this.Succeeded = succeded;
+            this.Message = Message;
+        }
+
         public T Data { get; set; }
         public bool Succeeded { get; set; }
         public string[] Errors { get; set; }

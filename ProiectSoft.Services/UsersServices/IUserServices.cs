@@ -11,7 +11,7 @@ namespace ProiectSoft.Services.UsersServices
     public interface IUserServices
     {
         Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route);
-        Task<UserGetModel> GetById(Guid id);
+        Task<Response<UserGetModel>> GetById(Guid id);
         Task Update(UserPutModel model, Guid id);
         Task Delete(Guid id);
     }

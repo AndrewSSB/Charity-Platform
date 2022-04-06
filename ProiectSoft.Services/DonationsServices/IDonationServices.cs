@@ -11,7 +11,7 @@ namespace ProiectSoft.Services.DonationsServices
     public interface IDonationServices
     {
         Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route);
-        Task<DonationGetModel> GetById(int id);
+        Task<Response<DonationGetModel>> GetById(int id);
         Task Create(DonationPostModel model);
         Task Update(DonationPutModel model, int id);
         Task Delete(int id);

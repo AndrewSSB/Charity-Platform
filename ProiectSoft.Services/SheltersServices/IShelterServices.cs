@@ -11,7 +11,7 @@ namespace ProiectSoft.Services.SheltersServices
     public interface IShelterServices
     {
         Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route);
-        Task<ShelterGetModel> GetById(int id);
+        Task<Response<ShelterGetModel>> GetById(int id);
         Task Create(ShelterPostModel model);
         Task Update(ShelterPutModel model, int id);
         Task Delete(int id);

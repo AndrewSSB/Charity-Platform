@@ -96,7 +96,7 @@ namespace ProiectSoft.Services.DonationsServices
             return pagedResponse;
         }
 
-        public async Task<DonationGetModel> GetById(int id)
+        public async Task<Response<DonationGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById donation request for {id}");
 
@@ -105,12 +105,12 @@ namespace ProiectSoft.Services.DonationsServices
             if (donation == null)
             {
                 _logger.LogError($"OPS! Donation with id:{id} does not exist in our database");
-                return new DonationGetModel();
+                return new Response<DonationGetModel>(false, $"Id {id} doesn't exist");
             }
             
             var donationGetModel = _mapper.Map<DonationGetModel>(donation);
 
-            return donationGetModel;
+            return new Response<DonationGetModel>(donationGetModel);
         }
 
         public async Task Update(DonationPutModel model, int id)

@@ -68,7 +68,7 @@ namespace ProiectSoft.Services.UsersServices
             return pagedResponse;
         }
 
-        public async Task<UserGetModel> GetById(Guid id)
+        public async Task<Response<UserGetModel>> GetById(Guid id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById user request for {id}");
 
@@ -77,12 +77,12 @@ namespace ProiectSoft.Services.UsersServices
             if (user == null)
             {
                 _logger.LogError($"OPS! User with id:{id} does not exist in our database");
-                return new UserGetModel();
+                return new Response<UserGetModel>(false, $"Id {id} doesn't exist");
             }
 
             var userGetModel = _mapper.Map<UserGetModel>(user);
 
-            return userGetModel;
+            return new Response<UserGetModel>(userGetModel);
         }
 
         public async Task Update(UserPutModel model, Guid id)

@@ -11,7 +11,7 @@ namespace ProiectSoft.Services.OrganizationsService
     public interface IOrganisationService
     {
         Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route);
-        Task<OrganisationGetModel> GetById(int id);
+        Task<Response<OrganisationGetModel>> GetById(int id);
         Task Create(OrganisationPostModel model);
         Task Update(OrganisationPutModel model, int id);
         Task Delete(int id);

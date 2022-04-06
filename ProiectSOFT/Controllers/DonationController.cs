@@ -2,6 +2,7 @@
 using ProiectSoft.DAL.Models.DonationModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.DonationsServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -31,11 +32,11 @@ namespace ProiectSOFT.Controllers
         {
             var donation = await _donationServices.GetById(id);
 
-            return Ok(new Response<DonationGetModel>(donation));
+            return Ok(donation);
         }
 
         [HttpPost("AddDonation")]
-        public async Task<IActionResult> AddDonation([FromBody] DonationPostModel model)
+        public async Task<IActionResult> AddDonation([FromBody][Required] DonationPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -46,7 +47,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateDonation")]
-        public async Task<IActionResult> UpdateDonation([FromBody] DonationPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateDonation([FromBody][Required] DonationPutModel model, [FromQuery] int id)
         {
             await _donationServices.Update(model, id);
 

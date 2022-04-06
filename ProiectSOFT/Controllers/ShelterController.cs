@@ -2,6 +2,7 @@
 using ProiectSoft.DAL.Models.ShelterModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.SheltersServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -31,11 +32,11 @@ namespace ProiectSOFT.Controllers
         {
             var shelter = await _shelterServices.GetById(id);
 
-            return Ok(new Response<ShelterGetModel>(shelter));
+            return Ok(shelter);
         }
 
         [HttpPost("AddShelter")]
-        public async Task<IActionResult> AddShelter([FromBody] ShelterPostModel model)
+        public async Task<IActionResult> AddShelter([FromBody][Required] ShelterPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -46,7 +47,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateShelter")]
-        public async Task<IActionResult> UpdateShelter([FromBody] ShelterPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateShelter([FromBody][Required] ShelterPutModel model, [FromQuery] int id)
         {
             await _shelterServices.Update(model, id);
 

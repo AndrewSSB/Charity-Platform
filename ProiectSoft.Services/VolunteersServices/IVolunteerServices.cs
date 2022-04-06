@@ -11,7 +11,7 @@ namespace ProiectSoft.Services.VolunteersServices
     public interface IVolunteerServices
     {
         Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route);
-        Task<VolunteerGetModel> GetById(int id);
+        Task<Response<VolunteerGetModel>> GetById(int id);
         Task Create(VolunteerPostModel model);
         Task Update(VolunteerPutModel model, int id);
         Task Delete(int id);

@@ -2,6 +2,7 @@
 using ProiectSoft.DAL.Models.VolunteerModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.VolunteersServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -31,11 +32,11 @@ namespace ProiectSOFT.Controllers
         {
             var volunteer = await _volunteerServices.GetById(id);
 
-            return Ok(new Response<VolunteerGetModel>(volunteer));
+            return Ok(volunteer);
         }
 
         [HttpPost("AddVolunteer")]
-        public async Task<IActionResult> AddVolunteer([FromBody] VolunteerPostModel model)
+        public async Task<IActionResult> AddVolunteer([FromBody][Required] VolunteerPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -46,7 +47,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateVolunteer")]
-        public async Task<IActionResult> UpdateVolunteer([FromBody] VolunteerPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateVolunteer([FromBody][Required] VolunteerPutModel model, [FromQuery] int id)
         {
             await _volunteerServices.Update(model, id);
 

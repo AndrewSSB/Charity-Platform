@@ -80,7 +80,7 @@ namespace ProiectSoft.Services.CasesServices
             return pagedResponse;
         }
 
-        public async Task<CasesGetModel> GetById(int id)
+        public async Task<Response<CasesGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById case request for {id}");
 
@@ -89,12 +89,12 @@ namespace ProiectSoft.Services.CasesServices
             if (_case == null)
             {
                 _logger.LogError($"OPS! Case with id:{id} does not exist in our database");
-                return new CasesGetModel();
+                return new Response<CasesGetModel>(false, $"Id {id} doesn't exist");
             }
 
             var caseGetModel = _mapper.Map<CasesGetModel>(_case);
 
-            return caseGetModel;
+            return new Response<CasesGetModel>(caseGetModel);
         }
 
         public async Task Update(CasesPutModel model, int id)

@@ -89,7 +89,7 @@ namespace ProiectSoft.Services.VolunteersServices
             return pagedResponse;
         }
 
-        public async Task<VolunteerGetModel> GetById(int id)
+        public async Task<Response<VolunteerGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById volunteer request for {id}");
 
@@ -98,12 +98,12 @@ namespace ProiectSoft.Services.VolunteersServices
             if (volunteer == null)
             {
                 _logger.LogError($"OPS! Volunteer with id:{id} does not exist in our database");
-                return new VolunteerGetModel();
+                return new Response<VolunteerGetModel>(false, $"Id {id} doesn't exist");
             }
 
             var volunteerGetModel = _mapper.Map<VolunteerGetModel>(volunteer);
 
-            return volunteerGetModel;
+            return new Response<VolunteerGetModel>(volunteerGetModel);
         }
 
         public async Task Update(VolunteerPutModel model, int id)

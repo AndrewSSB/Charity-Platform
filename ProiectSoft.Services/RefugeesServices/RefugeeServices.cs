@@ -106,7 +106,7 @@ namespace ProiectSoft.Services.RefugeesServices
             return pagedResponse;
         }
 
-        public async Task<RefugeeGetModel> GetById(int id)
+        public async Task<Response<RefugeeGetModel>> GetById(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetById refugee request for {id}");
 
@@ -115,12 +115,12 @@ namespace ProiectSoft.Services.RefugeesServices
             if (refugee == null)
             {
                 _logger.LogError($"OPS! Refugee with id:{id} does not exist in our database");
-                return new RefugeeGetModel();
+                return new Response<RefugeeGetModel>(false, $"Id {id} doesn't exist");
             }
             
             var refugeeGetModel = _mapper.Map<RefugeeGetModel>(refugee);
 
-            return refugeeGetModel;
+            return new Response<RefugeeGetModel>(refugeeGetModel);
         }
 
         public async Task Update(RefugeePutModel model, int id)

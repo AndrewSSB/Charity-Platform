@@ -2,6 +2,7 @@
 using ProiectSoft.DAL.Models.LocationModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.Services.LocationsServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectSOFT.Controllers
 {
@@ -31,11 +32,11 @@ namespace ProiectSOFT.Controllers
         {
             var location = await _locationServices.GetById(id);
 
-            return Ok(new Response<LocationGetModel>(location));
+            return Ok(location);
         }
 
         [HttpPost("AddLocation")]
-        public async Task<IActionResult> AddLocation([FromBody] LocationPostModel model)
+        public async Task<IActionResult> AddLocation([FromBody][Required] LocationPostModel model)
         {
             if (model == null)
                 return BadRequest();
@@ -46,7 +47,7 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpPut("UpdateLocation")]
-        public async Task<IActionResult> UpdateLocation([FromBody] LocationPutModel model, [FromQuery] int id)
+        public async Task<IActionResult> UpdateLocation([FromBody][Required] LocationPutModel model, [FromQuery] int id)
         {
             await _locationServices.Update(model, id);
 
