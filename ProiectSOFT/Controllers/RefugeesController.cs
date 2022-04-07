@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL.Models.RefugeeModels;
 using ProiectSoft.DAL.Wrappers;
@@ -22,11 +23,18 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchName,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending
+        )
         {
             var route = Request.Path.Value;
-            
-            var refugees = await _refugeeServices.GetAll(filter, route);
+
+            var refugees = await _refugeeServices.GetAll(filter, route, searchName, orderBy, descending);
+
+            if (refugees.Succeeded == false || refugees.Data.Count == 0)
+                return NotFound("Enter a valid search/order");
 
             return Ok(refugees);
         }
@@ -34,9 +42,14 @@ namespace ProiectSOFT.Controllers
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            var _case = await _refugeeServices.GetById(id);
+            var refugee = await _refugeeServices.GetById(id);
 
-            return Ok(_case);
+            if (refugee.Succeeded)
+            {
+                return Ok(refugee);      
+            }
+
+            return NotFound(refugee.Message);
         }
 
         [HttpPost("AddRefugee")]

@@ -82,7 +82,7 @@ namespace ProiectSoft.Services.RefugeesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll refugee request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -90,6 +90,16 @@ namespace ProiectSoft.Services.RefugeesServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            //search and filter
+            if (!String.IsNullOrEmpty(searchName))
+            {
+                refugees = refugees.Where(x => x.Name!.Contains(searchName)).ToList(); //nu merge ToListAsync();
+            }
+            
+            // daca pune ceva dupa care nu se poate ordona -> intra pe default si in plus daca descending e true atunci
+            //atunci trebuie sa pot intra in functie si sa ordonez default descrescator e gandita cam prost stiu, poate o modfic
+            refugees = await OrderBy(refugees, orderBy, descending);
 
             var refugeeModels = new List<RefugeeGetModel>();
 
@@ -140,11 +150,32 @@ namespace ProiectSoft.Services.RefugeesServices
             {
                 _logger.LogError($"There is no shelter with ID:{model.ShelterId}. Update failed");
                 return;
-            }
+            }   
 
             _mapper.Map<RefugeePutModel, Refugee>(model, refugee);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Refugee>> OrderBy(List<Refugee> refugees, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Name":
+                    refugees = descending == false ? refugees.OrderBy(x => x.Name).ToList() : refugees.OrderByDescending(x => x.Name).ToList();
+                    break;
+                case "Date":
+                    refugees = descending == false ? refugees.OrderBy(s => s.DateCreated).ToList() : refugees.OrderByDescending(x => x.DateCreated).ToList();
+                    break;
+                case "Age":
+                    refugees = descending == false ? refugees.OrderBy(s => s.Age).ToList() : refugees.OrderByDescending(x => x.Age).ToList();
+                    break;
+                default:
+                    refugees = descending == false ? refugees.OrderBy(s => s.lastName).ToList() : refugees.OrderByDescending(x=>x.lastName).ToList();
+                    break;  
+            }
+
+            return refugees;
         }
     }
 }

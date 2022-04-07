@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -94,7 +95,7 @@ namespace ProiectSoft.BLL.Managers
 
         public async Task<bool> Register(RegisterModel registerModel)
         {
-            LogContext.PushProperty("IdentificationMessage", "Found this exception in the AuthManager:Register");
+            LogContext.PushProperty("IdentificationMessage", $"Found this exception in the AuthManager:Register for user {registerModel.UserName}");
 
             var user = new User
             {

@@ -26,8 +26,8 @@ namespace ProiectSoft.Services.CasesServices
         {
             _context = context;
             _uriServices = uriServices;
-            _mapper = mapper;   
-            _logger = logger;   
+            _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task Create(CasesPostModel model)
@@ -38,14 +38,14 @@ namespace ProiectSoft.Services.CasesServices
 
             await _context.AddAsync(_case);
             await _context.SaveChangesAsync();
-            
+
         }
         public async Task Delete(int id)
         {
             LogContext.PushProperty("IdentificationMessage", $"Delete case request for {id}");
 
             var _case = await _context.Cases.FirstOrDefaultAsync(x => x.Id == id);
-            
+
             if (_case == null)
             {
                 _logger.LogError($"OPS! Case with id:{id} does not exist in our database");
@@ -56,7 +56,7 @@ namespace ProiectSoft.Services.CasesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route, string searchCase, string ordBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll case request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -64,6 +64,13 @@ namespace ProiectSoft.Services.CasesServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            if (!String.IsNullOrEmpty(searchCase))
+            {
+                cases = cases.Where(x => x.caseName!.Contains(searchCase)).ToList();
+            }
+
+            cases = await OrderBy(cases, ordBy, descending);
 
             var casesModels = new List<CasesGetModel>();
 
@@ -112,6 +119,27 @@ namespace ProiectSoft.Services.CasesServices
             _mapper.Map<CasesPutModel, Cases>(model, _case);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Cases>> OrderBy(List<Cases> cases, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Name":
+                    cases = descending == false ? cases.OrderBy(x => x.caseName).ToList() : cases.OrderByDescending(x => x.caseName).ToList();
+                    break;
+                case "Date":
+                    cases = descending == false ? cases.OrderBy(s => s.DateCreated).ToList() : cases.OrderByDescending(x => x.DateCreated).ToList();
+                    break;
+                case "Age":
+                    cases = descending == false ? cases.OrderBy(s => s.endDate).ToList() : cases.OrderByDescending(x => x.endDate).ToList();
+                    break;
+                default:
+                    cases = descending == false ? cases.OrderBy(s => s.Id).ToList() : cases.OrderByDescending(x => x.Id).ToList();
+                    break;
+            }
+
+            return cases;
         }
     }
 }

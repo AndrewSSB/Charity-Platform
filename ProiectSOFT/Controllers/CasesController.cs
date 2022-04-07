@@ -19,11 +19,20 @@ namespace ProiectSOFT.Controllers
         }
         //[Authorize(Roles = "Admin")]
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchCase,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending
+        )
         {
             var route = Request.Path.Value;
 
-            var cases = await _casesService.GetAll(filter, route);
+            var cases = await _casesService.GetAll(filter, route, searchCase, orderBy, descending);
+
+            if (cases.Succeeded == false || cases.Data.Count == 0)
+            {
+                return NotFound("Enter a valid search/order");
+            }
 
             return Ok(cases);
         }
@@ -33,7 +42,12 @@ namespace ProiectSOFT.Controllers
         {
             var _case = await _casesService.GetById(id);
 
-            return Ok(_case);
+            if (_case.Succeeded)
+            {
+                return Ok(_case);
+            }
+
+            return NotFound(_case.Message);
         }
 
         [HttpPost("AddCase")]
