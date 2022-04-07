@@ -58,7 +58,7 @@ namespace ProiectSoft.Services.LocationsServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route, string searchCity, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll locations request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -66,6 +66,13 @@ namespace ProiectSoft.Services.LocationsServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            if (!string.IsNullOrEmpty(searchCity))
+            {
+                locations = locations.Where(x => x.City!.Contains(searchCity)).ToList();
+            }
+
+            locations = await OrderBy(locations, orderBy, descending);
 
             var locationModels = new List<LocationGetModel>();
 
@@ -113,6 +120,27 @@ namespace ProiectSoft.Services.LocationsServices
             _mapper.Map<LocationPutModel, Location>(model, location);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Location>> OrderBy(List<Location> locations, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "County":
+                    locations = descending == false ? locations.OrderBy(x => x.County).ToList() : locations.OrderByDescending(x => x.County).ToList();
+                    break;
+                case "City":
+                    locations = descending == false ? locations.OrderBy(s => s.City).ToList() : locations.OrderByDescending(x => x.City).ToList();
+                    break;
+                case "Street":
+                    locations = descending == false ? locations.OrderBy(s => s.Street).ToList() : locations.OrderByDescending(x => x.Street).ToList();
+                    break;
+                default:
+                    locations = descending == false ? locations.OrderBy(s => s.Id).ToList() : locations.OrderByDescending(x => x.Id).ToList();
+                    break;
+            }
+
+            return locations;
         }
     }
 }

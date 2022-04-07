@@ -10,7 +10,7 @@ namespace ProiectSoft.Services.DonationsServices
 {
     public interface IDonationServices
     {
-        Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route);
+        Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route, string orderBy, bool descending);
         Task<Response<DonationGetModel>> GetById(int id);
         Task Create(DonationPostModel model);
         Task Update(DonationPutModel model, int id);

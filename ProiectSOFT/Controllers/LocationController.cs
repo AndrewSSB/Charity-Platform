@@ -18,11 +18,19 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchCity,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending)
         {
             var route = Request.Path.Value;
 
-            var locations = await _locationServices.GetAll(filter, route);
+            var locations = await _locationServices.GetAll(filter, route, searchCity, orderBy, descending);
+
+            if (locations.Succeeded == false)
+            {
+                return NotFound("Something went wrong in GetAll locations query");
+            }
 
             return Ok(locations);
         }
@@ -32,7 +40,12 @@ namespace ProiectSOFT.Controllers
         {
             var location = await _locationServices.GetById(id);
 
-            return Ok(location);
+            if (location.Succeeded)
+            {
+                return Ok(location);
+            }
+
+            return NotFound(location.Message);
         }
 
         [HttpPost("AddLocation")]

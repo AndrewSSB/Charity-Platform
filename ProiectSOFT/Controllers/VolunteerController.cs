@@ -18,11 +18,19 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchName,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending)
         {
             var route = Request.Path.Value;
 
-            var volunteers = await _volunteerServices.GetAll(filter, route);
+            var volunteers = await _volunteerServices.GetAll(filter, route, searchName, orderBy, descending);
+
+            if (volunteers.Succeeded == false)
+            {
+                return NotFound("Something went wrong in GetAll volunteers query");
+            }
 
             return Ok(volunteers);
         }
@@ -32,7 +40,12 @@ namespace ProiectSOFT.Controllers
         {
             var volunteer = await _volunteerServices.GetById(id);
 
-            return Ok(volunteer);
+            if (volunteer.Succeeded)
+            {
+                return Ok(volunteer);
+            }
+
+            return NotFound(volunteer.Message);
         }
 
         [HttpPost("AddVolunteer")]

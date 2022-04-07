@@ -67,7 +67,7 @@ namespace ProiectSoft.Services.OrganizationService
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll organisation request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -75,6 +75,13 @@ namespace ProiectSoft.Services.OrganizationService
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            if (!string.IsNullOrEmpty(searchName))
+            {
+                organisations = organisations.Where(x => x.Name!.Contains(searchName)).ToList();
+            }
+
+            organisations = await OrderBy(organisations, orderBy, descending);
 
             var organisationModels = new List<OrganisationGetModel>();
 
@@ -131,6 +138,27 @@ namespace ProiectSoft.Services.OrganizationService
             _mapper.Map<OrganisationPutModel, Organisation>(model, organisation);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Organisation>> OrderBy(List<Organisation> organisations, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Name":
+                    organisations = descending == false ? organisations.OrderBy(x => x.Name).ToList() : organisations.OrderByDescending(x => x.Name).ToList();
+                    break;
+                case "Date":
+                    organisations = descending == false ? organisations.OrderBy(s => s.CasesId).ToList() : organisations.OrderByDescending(x => x.CasesId).ToList();
+                    break;
+                case "Age":
+                    organisations = descending == false ? organisations.OrderBy(s => s.DateCreated).ToList() : organisations.OrderByDescending(x => x.DateCreated).ToList();
+                    break;
+                default:
+                    organisations = descending == false ? organisations.OrderBy(s => s.Id).ToList() : organisations.OrderByDescending(x => x.Id).ToList();
+                    break;
+            }
+
+            return organisations;
         }
     }
 }

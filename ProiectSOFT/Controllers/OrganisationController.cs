@@ -18,11 +18,19 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchName,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending)
         {
             var route = Request.Path.Value;
 
-            var organisations = await _organisationService.GetAll(filter, route);
+            var organisations = await _organisationService.GetAll(filter, route, searchName, orderBy, descending);
+
+            if (organisations.Succeeded == false)
+            {
+                return NotFound("Something went wrong in GetAll organisations query");
+            }
 
             return Ok(organisations);
         }
@@ -32,7 +40,12 @@ namespace ProiectSOFT.Controllers
         {
             var organisation = await _organisationService.GetById(id);
 
-            return Ok(organisation);
+            if (organisation.Succeeded)
+            {
+                return Ok(organisation);
+            }
+
+            return NotFound(organisation.Message);
         }
 
         [HttpPost("AddOrganisation")]

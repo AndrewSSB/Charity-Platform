@@ -18,11 +18,19 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchName,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending)
         {
             var route = Request.Path.Value;
 
-            var shelters = await _shelterServices.GetAll(filter, route);
+            var shelters = await _shelterServices.GetAll(filter, route, searchName, orderBy, descending);
+
+            if (shelters.Succeeded == false)
+            {
+                return NotFound("Something went wrong in GetAll shelters query");
+            }
 
             return Ok(shelters);
         }
@@ -32,7 +40,12 @@ namespace ProiectSOFT.Controllers
         {
             var shelter = await _shelterServices.GetById(id);
 
-            return Ok(shelter);
+            if (shelter.Succeeded)
+            {
+                return Ok(shelter);
+            }
+
+            return NotFound(shelter.Message);
         }
 
         [HttpPost("AddShelter")]

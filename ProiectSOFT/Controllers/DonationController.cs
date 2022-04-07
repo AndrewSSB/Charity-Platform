@@ -18,11 +18,18 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending)
         {
             var route = Request.Path.Value;
 
-            var donations = await _donationServices.GetAll(filter, route);
+            var donations = await _donationServices.GetAll(filter, route, orderBy, descending);
+
+            if (donations.Succeeded == false)
+            {
+                return NotFound("Something went wrong in GetAll donations query");
+            }
 
             return Ok(donations);
         }
@@ -32,7 +39,12 @@ namespace ProiectSOFT.Controllers
         {
             var donation = await _donationServices.GetById(id);
 
-            return Ok(donation);
+            if (donation.Succeeded)
+            {
+                return Ok(donation);
+            }
+
+            return NotFound(donation.Message);
         }
 
         [HttpPost("AddDonation")]

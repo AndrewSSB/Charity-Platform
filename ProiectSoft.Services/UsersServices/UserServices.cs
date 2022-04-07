@@ -44,7 +44,7 @@ namespace ProiectSoft.Services.UsersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route, string searchUserName, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll users request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -52,6 +52,13 @@ namespace ProiectSoft.Services.UsersServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            if (!String.IsNullOrEmpty(searchUserName))
+            {
+                users = users.Where(x => x.UserName!.Contains(searchUserName)).ToList();
+            }
+
+            users = await OrderBy(users, orderBy, descending);
 
             var userModels = new List<UserGetModel>();
 
@@ -100,6 +107,27 @@ namespace ProiectSoft.Services.UsersServices
             _mapper.Map<UserPutModel, User>(model, user);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<User>> OrderBy(List<User> users, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Name":
+                    users = descending == false ? users.OrderBy(x => x.UserName).ToList() : users.OrderByDescending(x => x.UserName).ToList();
+                    break;
+                case "Email":
+                    users = descending == false ? users.OrderBy(s => s.Email).ToList() : users.OrderByDescending(x => x.Email).ToList();
+                    break;
+                case "Age":
+                    users = descending == false ? users.OrderBy(s => s.FirstName).ToList() : users.OrderByDescending(x => x.FirstName).ToList();
+                    break;
+                default:
+                    users = descending == false ? users.OrderBy(s => s.LastName).ToList() : users.OrderByDescending(x => x.LastName).ToList();
+                    break;
+            }
+
+            return users;
         }
     }
 }

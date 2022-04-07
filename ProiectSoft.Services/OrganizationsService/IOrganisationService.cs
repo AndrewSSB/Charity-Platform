@@ -10,7 +10,7 @@ namespace ProiectSoft.Services.OrganizationsService
 {
     public interface IOrganisationService
     {
-        Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route);
+        Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending);
         Task<Response<OrganisationGetModel>> GetById(int id);
         Task Create(OrganisationPostModel model);
         Task Update(OrganisationPutModel model, int id);

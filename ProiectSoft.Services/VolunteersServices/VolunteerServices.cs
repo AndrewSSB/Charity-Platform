@@ -65,7 +65,7 @@ namespace ProiectSoft.Services.VolunteersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll volunteers request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -73,6 +73,13 @@ namespace ProiectSoft.Services.VolunteersServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            if (string.IsNullOrEmpty(searchName))
+            {
+                volunteers = volunteers.Where(x => x.Name!.Contains(searchName)).ToList();
+            }
+
+            volunteers = await OrderBy(volunteers, orderBy, descending);
 
             var volunteerModels = new List<VolunteerGetModel>();
 
@@ -126,6 +133,27 @@ namespace ProiectSoft.Services.VolunteersServices
             _mapper.Map<VolunteerPutModel, Volunteer>(model, volunteer);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Volunteer>> OrderBy(List<Volunteer> refugees, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Name":
+                    refugees = descending == false ? refugees.OrderBy(x => x.Name).ToList() : refugees.OrderByDescending(x => x.Name).ToList();
+                    break;
+                case "Date":
+                    refugees = descending == false ? refugees.OrderBy(s => s.DateCreated).ToList() : refugees.OrderByDescending(x => x.DateCreated).ToList();
+                    break;
+                case "Position":
+                    refugees = descending == false ? refugees.OrderBy(s => s.Position).ToList() : refugees.OrderByDescending(x => x.Position).ToList();
+                    break;
+                default:
+                    refugees = descending == false ? refugees.OrderBy(s => s.lastName).ToList() : refugees.OrderByDescending(x => x.lastName).ToList();
+                    break;
+            }
+
+            return refugees;
         }
     }
 }

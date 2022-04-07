@@ -72,7 +72,7 @@ namespace ProiectSoft.Services.DonationsServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll donation request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -80,6 +80,8 @@ namespace ProiectSoft.Services.DonationsServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            donations = await OrderBy(donations, orderBy, descending);
 
             var donationsModels = new List<DonationGetModel>();
 
@@ -141,6 +143,27 @@ namespace ProiectSoft.Services.DonationsServices
             _mapper.Map<DonationPutModel, Donation>(model, donation);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Donation>> OrderBy(List<Donation> donations, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Date":
+                    donations = descending == false ? donations.OrderBy(x => x.DateCreated).ToList() : donations.OrderByDescending(x => x.DateCreated).ToList();
+                    break;
+                case "User":
+                    donations = descending == false ? donations.OrderBy(s => s.UserId).ToList() : donations.OrderByDescending(x => x.UserId).ToList();
+                    break;
+                case "Organisation":
+                    donations = descending == false ? donations.OrderBy(s => s.OrganisationId).ToList() : donations.OrderByDescending(x => x.OrganisationId).ToList();
+                    break;
+                default:
+                    donations = descending == false ? donations.OrderBy(s => s.Id).ToList() : donations.OrderByDescending(x => x.Id).ToList();
+                    break;
+            }
+
+            return donations;
         }
     }
 }

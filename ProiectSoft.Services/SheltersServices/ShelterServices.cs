@@ -70,7 +70,7 @@ namespace ProiectSoft.Services.SheltersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route)
+        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll shelter request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -78,6 +78,13 @@ namespace ProiectSoft.Services.SheltersServices
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+
+            if (string.IsNullOrEmpty(searchName))
+            {
+                shelters = shelters.Where(x => x.Name!.Contains(searchName)).ToList();
+            }
+
+            shelters = await OrderBy(shelters, orderBy, descending);
 
             var shelterModels = new List<ShelterGetModel>();
 
@@ -139,6 +146,30 @@ namespace ProiectSoft.Services.SheltersServices
             _mapper.Map<ShelterPutModel, Shelter>(model, shelter);
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<List<Shelter>> OrderBy(List<Shelter> shelters, string orderBy, bool descending)
+        {
+            switch (orderBy)
+            {
+                case "Name":
+                    shelters = descending == false ? shelters.OrderBy(x => x.Name).ToList() : shelters.OrderByDescending(x => x.Name).ToList();
+                    break;
+                case "Date":
+                    shelters = descending == false ? shelters.OrderBy(s => s.DateCreated).ToList() : shelters.OrderByDescending(x => x.DateCreated).ToList();
+                    break;
+                case "Space":
+                    shelters = descending == false ? shelters.OrderBy(s => s.availableSpace).ToList() : shelters.OrderByDescending(x => x.availableSpace).ToList();
+                    break;
+                case "Email":
+                    shelters = descending == false ? shelters.OrderBy(s => s.Email).ToList() : shelters.OrderByDescending(x => x.Email).ToList();
+                    break;
+                default:
+                    shelters = descending == false ? shelters.OrderBy(s => s.Id).ToList() : shelters.OrderByDescending(x => x.Id).ToList();
+                    break;
+            }
+
+            return shelters;
         }
     }
 }

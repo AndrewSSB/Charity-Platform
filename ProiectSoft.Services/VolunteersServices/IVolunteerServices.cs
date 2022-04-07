@@ -10,7 +10,7 @@ namespace ProiectSoft.Services.VolunteersServices
 {
     public interface IVolunteerServices
     {
-        Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route);
+        Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending);
         Task<Response<VolunteerGetModel>> GetById(int id);
         Task Create(VolunteerPostModel model);
         Task Update(VolunteerPutModel model, int id);

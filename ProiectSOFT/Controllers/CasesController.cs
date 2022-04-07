@@ -29,9 +29,9 @@ namespace ProiectSOFT.Controllers
 
             var cases = await _casesService.GetAll(filter, route, searchCase, orderBy, descending);
 
-            if (cases.Succeeded == false || cases.Data.Count == 0)
+            if (cases.Succeeded == false)
             {
-                return NotFound("Enter a valid search/order");
+                return NotFound("Something went wrong in GetAll cases query");
             }
 
             return Ok(cases);

@@ -20,10 +20,19 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
+            [FromQuery] string? searchUserName,
+            [FromQuery] string? orderBy,
+            [FromQuery] bool descending)
         {
             var route = Request.Path.Value;
-            var users = await _userServices.GetAll(filter, route);
+
+            var users = await _userServices.GetAll(filter, route, searchUserName, orderBy, descending);
+
+            if (users.Succeeded == false)
+            {
+                return NotFound("Something went wrong in GetAll users query");
+            }
 
             return Ok(users);
         }
@@ -33,7 +42,12 @@ namespace ProiectSOFT.Controllers
         {
             var user = await _userServices.GetById(id);
 
-            return Ok(user);
+            if (user.Succeeded)
+            {
+                return Ok(user);
+            }
+
+            return NotFound(user.Message);
         }
 
         [HttpPut("UpdateUser")]

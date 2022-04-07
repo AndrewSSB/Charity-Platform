@@ -33,8 +33,8 @@ namespace ProiectSOFT.Controllers
 
             var refugees = await _refugeeServices.GetAll(filter, route, searchName, orderBy, descending);
 
-            if (refugees.Succeeded == false || refugees.Data.Count == 0)
-                return NotFound("Enter a valid search/order");
+            if (refugees.Succeeded == false)
+                return NotFound("Something went wrong in GetAll refugees query");
 
             return Ok(refugees);
         }
