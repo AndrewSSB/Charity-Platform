@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utils.MiddlewareManager;
 
 namespace ProiectSoft.Services.CasesServices
 {
@@ -49,14 +50,15 @@ namespace ProiectSoft.Services.CasesServices
             if (_case == null)
             {
                 _logger.LogError($"OPS! Case with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no case with id: {id}, try with another one");
             }
 
             _context.Cases.Remove(_case);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route, string searchCase, string ordBy, bool descending)
+        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route, 
+            string searchCase, string ordBy, bool descending, string[] filters)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll case request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -68,6 +70,11 @@ namespace ProiectSoft.Services.CasesServices
             if (!String.IsNullOrEmpty(searchCase))
             {
                 cases = cases.Where(x => x.caseName!.Contains(searchCase)).ToList();
+            }
+
+            if (filters.Count() > 0)
+            {
+                cases = await FilterCases(cases, filters);
             }
 
             cases = await OrderBy(cases, ordBy, descending);
@@ -96,7 +103,7 @@ namespace ProiectSoft.Services.CasesServices
             if (_case == null)
             {
                 _logger.LogError($"OPS! Case with id:{id} does not exist in our database");
-                return new Response<CasesGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException($"There is no case with id: {id}");
             }
 
             var caseGetModel = _mapper.Map<CasesGetModel>(_case);
@@ -113,7 +120,7 @@ namespace ProiectSoft.Services.CasesServices
             if (_case == null)
             {
                 _logger.LogError($"There is no case with ID:{id} in our database");
-                return;
+                throw new AppException($"There is no case with id: {id}, try with another one");
             }
 
             _mapper.Map<CasesPutModel, Cases>(model, _case);
@@ -137,6 +144,23 @@ namespace ProiectSoft.Services.CasesServices
                 default:
                     cases = descending == false ? cases.OrderBy(s => s.Id).ToList() : cases.OrderByDescending(x => x.Id).ToList();
                     break;
+            }
+
+            return cases;
+        }
+
+        private async Task<List<Cases>> FilterCases(List<Cases> cases, string[] filters)
+        {
+            if (filters.Length == 1)
+            {
+                cases = cases.Where(x => x.caseName.Contains(filters[0])).ToList(); 
+                 //nu stiu daca sa mai verific cazurile de eroare (adica front-ul ar putea avea grija sa fie introduse doar date care sunt corecte)
+            }
+            else if (filters.Length == 2)
+            {
+                cases = cases.Where(x => x.caseName.Contains(filters[0]) || 
+                x.startDate.Value.ToString("mm/dd/yyy").Contains(filters[1])).ToList();
+
             }
 
             return cases;

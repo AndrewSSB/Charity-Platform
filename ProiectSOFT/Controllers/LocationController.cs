@@ -21,11 +21,12 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchCity,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending)
+            [FromQuery] bool descending,
+            [FromQuery] string[] filters)
         {
             var route = Request.Path.Value;
 
-            var locations = await _locationServices.GetAll(filter, route, searchCity, orderBy, descending);
+            var locations = await _locationServices.GetAll(filter, route, searchCity, orderBy, descending, filters);
 
             if (locations.Succeeded == false)
             {
@@ -39,24 +40,16 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
             var location = await _locationServices.GetById(id);
-
-            if (location.Succeeded)
-            {
-                return Ok(location);
-            }
-
-            return NotFound(location.Message);
+            
+            return Ok(location);
         }
 
         [HttpPost("AddLocation")]
         public async Task<IActionResult> AddLocation([FromBody][Required] LocationPostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _locationServices.Create(model);
 
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateLocation")]
@@ -64,7 +57,7 @@ namespace ProiectSOFT.Controllers
         {
             await _locationServices.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteLocation")]
@@ -72,7 +65,7 @@ namespace ProiectSOFT.Controllers
         {
             await _locationServices.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

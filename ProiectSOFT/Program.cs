@@ -22,6 +22,7 @@ using SendGrid.Helpers.Mail;
 using Serilog;
 using System.Configuration;
 using System.Text;
+using Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -167,6 +168,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+// global error handler
+app.UseMiddleware<Middleware>();
 
 app.Run();
 

@@ -39,23 +39,15 @@ namespace ProiectSOFT.Controllers
         {
             var donation = await _donationServices.GetById(id);
 
-            if (donation.Succeeded)
-            {
-                return Ok(donation);
-            }
-
-            return NotFound(donation.Message);
+            return Ok(donation);
         }
 
         [HttpPost("AddDonation")]
         public async Task<IActionResult> AddDonation([FromBody][Required] DonationPostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _donationServices.Create(model);
 
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateDonation")]
@@ -63,7 +55,7 @@ namespace ProiectSOFT.Controllers
         {
             await _donationServices.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteDonation")]
@@ -71,7 +63,7 @@ namespace ProiectSOFT.Controllers
         {
             await _donationServices.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

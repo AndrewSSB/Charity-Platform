@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utils.MiddlewareManager;
 
 namespace ProiectSoft.Services.RefugeesServices
 {
@@ -40,14 +41,14 @@ namespace ProiectSoft.Services.RefugeesServices
 
             if (shelter == null) {
                 _logger.LogError($"OPS! {model.ShelterId} does not exist in our database");
-                return; 
+                throw new AppException("You have entered a wrong id for shelter");
             }
 
             //de fiecare data cand adaug un refugiat, available space din shelter scade
             if (shelter.availableSpace == 0)
             {
                 _logger.LogError($"There is no space left in {shelter.Name} for {model.Name}");
-                return;
+                throw new AppException("There is no space left for refugees, we're sorry");
             }
 
             var refugee = _mapper.Map<Refugee>(model);
@@ -68,7 +69,7 @@ namespace ProiectSoft.Services.RefugeesServices
             if (refugee == null)
             {
                 _logger.LogError($"OPS! Refugee with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no refugee with id: {id}, try with another one");
             }
 
             var space = await _context.Shelters.Where(x => x.Id == refugee.ShelterId).FirstOrDefaultAsync(); //cred ca asa vine ? //asa o las momentan
@@ -82,7 +83,7 @@ namespace ProiectSoft.Services.RefugeesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
+        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending, int? age, string flag)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll refugee request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -91,12 +92,17 @@ namespace ProiectSoft.Services.RefugeesServices
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            //search and filter
+            //search by name
             if (!String.IsNullOrEmpty(searchName))
             {
                 refugees = refugees.Where(x => x.Name!.Contains(searchName)).ToList(); //nu merge ToListAsync();
             }
-            
+
+            //filter option (am facut dupa age, nu aveam dupa ce altceva) //se putea si mai bine. probabil modific pe viitor
+            if (age != null)
+            {
+                refugees = await Filter(refugees, age, flag);
+            }
             // daca pune ceva dupa care nu se poate ordona -> intra pe default si in plus daca descending e true atunci
             //atunci trebuie sa pot intra in functie si sa ordonez default descrescator e gandita cam prost stiu, poate o modfic
             refugees = await OrderBy(refugees, orderBy, descending);
@@ -125,7 +131,8 @@ namespace ProiectSoft.Services.RefugeesServices
             if (refugee == null)
             {
                 _logger.LogError($"OPS! Refugee with id:{id} does not exist in our database");
-                return new Response<RefugeeGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException("Refugee not found");
+                //return new Response<RefugeeGetModel>(false, $"Id {id} doesn't exist");
             }
             
             var refugeeGetModel = _mapper.Map<RefugeeGetModel>(refugee);
@@ -141,7 +148,7 @@ namespace ProiectSoft.Services.RefugeesServices
 
             if (refugee == null) {
                 _logger.LogError($"There is no refugee with ID:{id} in our database");
-                return; 
+                throw new KeyNotFoundException($"Refugee not found for id{id}");
             }
 
             var refugeeShel = await _context.Refugees.FirstOrDefaultAsync(x => x.ShelterId == model.ShelterId);
@@ -149,7 +156,7 @@ namespace ProiectSoft.Services.RefugeesServices
             if (refugeeShel == null)
             {
                 _logger.LogError($"There is no shelter with ID:{model.ShelterId}. Update failed");
-                return;
+                throw new KeyNotFoundException($"U have entered an invalid if for shelter. id:{id}");
             }   
 
             _mapper.Map<RefugeePutModel, Refugee>(model, refugee);
@@ -176,6 +183,29 @@ namespace ProiectSoft.Services.RefugeesServices
             }
 
             return refugees;
+        }
+
+        private async Task<List<Refugee>> Filter(List<Refugee> refugees, int? age, string flag)
+        {
+            if (0 < age && age < 120) //probabil ar trebui sa dau throw la o exceptie (dupa ce fac middleware o sa revin aici)
+            {
+                if (flag == "<")
+                {
+                    return refugees.Where(x => x.Age < age).ToList();
+                }
+                else if (flag == ">")
+                {
+                    return refugees.Where(x => x.Age > age).ToList();
+                }
+                else
+                {
+                    throw new AppException("You entered a wrong flag");
+                }
+            }
+            else
+            {
+                throw new AppException("Age is not valid");
+            }
         }
     }
 }

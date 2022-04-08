@@ -26,12 +26,14 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchName,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending
+            [FromQuery] bool descending,
+            [FromQuery] int? age,
+            [FromQuery] string? flag
         )
         {
             var route = Request.Path.Value;
 
-            var refugees = await _refugeeServices.GetAll(filter, route, searchName, orderBy, descending);
+            var refugees = await _refugeeServices.GetAll(filter, route, searchName, orderBy, descending, age, flag);
 
             if (refugees.Succeeded == false)
                 return NotFound("Something went wrong in GetAll refugees query");
@@ -44,23 +46,15 @@ namespace ProiectSOFT.Controllers
         {
             var refugee = await _refugeeServices.GetById(id);
 
-            if (refugee.Succeeded)
-            {
-                return Ok(refugee);      
-            }
-
-            return NotFound(refugee.Message);
+            return Ok(refugee);
         }
 
         [HttpPost("AddRefugee")]
         public async Task<IActionResult> AddRefugee([FromBody][Required] RefugeePostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _refugeeServices.Create(model);
 
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateRefugee")]
@@ -68,7 +62,7 @@ namespace ProiectSOFT.Controllers
         {
             await _refugeeServices.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteRefugee")]
@@ -76,7 +70,7 @@ namespace ProiectSOFT.Controllers
         {
             await _refugeeServices.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

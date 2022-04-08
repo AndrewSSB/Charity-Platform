@@ -22,12 +22,13 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchCase,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending
+            [FromQuery] bool descending,
+            [FromQuery] string[] filters
         )
         {
             var route = Request.Path.Value;
 
-            var cases = await _casesService.GetAll(filter, route, searchCase, orderBy, descending);
+            var cases = await _casesService.GetAll(filter, route, searchCase, orderBy, descending, filters);
 
             if (cases.Succeeded == false)
             {
@@ -41,13 +42,8 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
             var _case = await _casesService.GetById(id);
-
-            if (_case.Succeeded)
-            {
-                return Ok(_case);
-            }
-
-            return NotFound(_case.Message);
+            
+            return Ok(_case);
         }
 
         [HttpPost("AddCase")]
@@ -55,7 +51,7 @@ namespace ProiectSOFT.Controllers
         {
             await _casesService.Create(model);
             
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateCase")]
@@ -63,7 +59,7 @@ namespace ProiectSOFT.Controllers
         {
             await _casesService.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteCase")]
@@ -71,7 +67,7 @@ namespace ProiectSOFT.Controllers
         {
             await _casesService.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
 
     }

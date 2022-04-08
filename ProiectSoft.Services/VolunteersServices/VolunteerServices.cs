@@ -58,14 +58,15 @@ namespace ProiectSoft.Services.VolunteersServices
             if (volunteer == null)
             {
                 _logger.LogError($"OPS! Volunteer with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no volunteer with id: {id}");
             }
 
             _context.Volunteers.Remove(volunteer);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
+        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route, 
+            string searchName, string orderBy, bool descending, string[] filters)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll volunteers request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -77,6 +78,11 @@ namespace ProiectSoft.Services.VolunteersServices
             if (string.IsNullOrEmpty(searchName))
             {
                 volunteers = volunteers.Where(x => x.Name!.Contains(searchName)).ToList();
+            }
+
+            if (filters.Count() > 0)
+            {
+                volunteers = await FilterVol(volunteers, filters);
             }
 
             volunteers = await OrderBy(volunteers, orderBy, descending);
@@ -105,7 +111,7 @@ namespace ProiectSoft.Services.VolunteersServices
             if (volunteer == null)
             {
                 _logger.LogError($"OPS! Volunteer with id:{id} does not exist in our database");
-                return new Response<VolunteerGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException($"There is no volunteer with id: {id}");
             }
 
             var volunteerGetModel = _mapper.Map<VolunteerGetModel>(volunteer);
@@ -119,7 +125,7 @@ namespace ProiectSoft.Services.VolunteersServices
 
             if (volunteer == null) {
                 _logger.LogError($"There is no volunteer with ID:{id} in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no volunteer with id: {id}");
             }
 
             var volunteerOrg = await _context.Organisations.FirstOrDefaultAsync(x => x.Id == model.OrganisationId);
@@ -127,7 +133,7 @@ namespace ProiectSoft.Services.VolunteersServices
             if (volunteerOrg == null)
             {
                 _logger.LogError($"There is no organisation with ID:{model.OrganisationId} in our database");
-                return;
+                throw new KeyNotFoundException($"There is no organisation with id: {model.OrganisationId}"); ;
             }
 
             _mapper.Map<VolunteerPutModel, Volunteer>(model, volunteer);
@@ -154,6 +160,34 @@ namespace ProiectSoft.Services.VolunteersServices
             }
 
             return refugees;
+        }
+
+        private async Task<List<Volunteer>> FilterVol(List<Volunteer> volunteers, string[] filters)
+        {
+            if (filters.Length == 1)
+            {
+                volunteers = volunteers.Where(x => x.Name.Contains(filters[0])).ToList();
+            }
+            else if (filters.Length == 2)
+            {
+                volunteers = volunteers.Where(x => x.Name.Contains(filters[0]) ||
+                x.lastName.Contains(filters[1])).ToList();
+            }
+            else if (filters.Length == 3)
+            {
+                volunteers = volunteers.Where(x => x.Name.Contains(filters[0]) ||
+                x.lastName.Contains(filters[1]) ||
+                x.Position.Contains(filters[2])).ToList();
+            }
+            else if (filters.Length == 4)
+            {
+                volunteers = volunteers.Where(x => x.Name.Contains(filters[0]) ||
+                x.lastName.Contains(filters[1]) ||
+                x.Position.Contains(filters[2]) ||
+                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[3])).ToList();
+            }
+
+            return volunteers.ToList();
         }
     }
 }

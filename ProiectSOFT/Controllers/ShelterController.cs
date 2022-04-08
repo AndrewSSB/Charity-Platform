@@ -21,11 +21,12 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchName,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending)
+            [FromQuery] bool descending,
+            [FromQuery] string[] filters)
         {
             var route = Request.Path.Value;
 
-            var shelters = await _shelterServices.GetAll(filter, route, searchName, orderBy, descending);
+            var shelters = await _shelterServices.GetAll(filter, route, searchName, orderBy, descending, filters);
 
             if (shelters.Succeeded == false)
             {
@@ -40,23 +41,15 @@ namespace ProiectSOFT.Controllers
         {
             var shelter = await _shelterServices.GetById(id);
 
-            if (shelter.Succeeded)
-            {
-                return Ok(shelter);
-            }
-
-            return NotFound(shelter.Message);
+            return Ok(shelter);
         }
 
         [HttpPost("AddShelter")]
         public async Task<IActionResult> AddShelter([FromBody][Required] ShelterPostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _shelterServices.Create(model);
 
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateShelter")]
@@ -64,7 +57,7 @@ namespace ProiectSOFT.Controllers
         {
             await _shelterServices.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteShelter")]
@@ -72,7 +65,7 @@ namespace ProiectSOFT.Controllers
         {
             await _shelterServices.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

@@ -21,16 +21,18 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchName,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending)
+            [FromQuery] bool descending,
+            [FromQuery] string[] filters)
         {
             var route = Request.Path.Value;
 
-            var organisations = await _organisationService.GetAll(filter, route, searchName, orderBy, descending);
+            var organisations = await _organisationService.GetAll(filter, route, searchName, orderBy, descending, filters);
 
             if (organisations.Succeeded == false)
             {
-                return NotFound("Something went wrong in GetAll organisations query");
-            }
+                return NotFound("Something went wrong in GetAll organisations query"); // pentru get all ar trebui sa primesc foarte greu fail pe request
+                                                                                       // momentan nu vad un caz in care se poate intampla, dar am zis sa fie specificata eroarea
+            }                                                                          // pot primi maxim o lista goala 
 
             return Ok(organisations);
         }
@@ -40,23 +42,15 @@ namespace ProiectSOFT.Controllers
         {
             var organisation = await _organisationService.GetById(id);
 
-            if (organisation.Succeeded)
-            {
-                return Ok(organisation);
-            }
-
-            return NotFound(organisation.Message);
+            return Ok(organisation);
         }
 
         [HttpPost("AddOrganisation")]
         public async Task<IActionResult> AddOrganisation([FromBody][Required] OrganisationPostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _organisationService.Create(model);
 
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateOrganisation")]
@@ -64,7 +58,7 @@ namespace ProiectSOFT.Controllers
         {
             await _organisationService.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteOrganisation")]
@@ -72,7 +66,7 @@ namespace ProiectSOFT.Controllers
         {
             await _organisationService.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

@@ -39,12 +39,12 @@ namespace ProiectSoft.Services.SheltersServices
 
             if (location == null) {
                 _logger.LogError($"OPS! {model.LocationId} does not exist in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no location with id: {model.LocationId}");
             }
 
             if (organisation == null) {
                 _logger.LogError($"OPS! {model.OrganisationId} does not exist in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no organisation with id: {model.OrganisationId}");
             }
         
             var shelter = _mapper.Map<Shelter>(model);
@@ -63,14 +63,15 @@ namespace ProiectSoft.Services.SheltersServices
             if (shelter == null)
             {
                 _logger.LogError($"OPS! Shelter with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no shelter with id: {id}");
             }
 
             _context.Shelters.Remove(shelter);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
+        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route, 
+            string searchName, string orderBy, bool descending, string[] filters)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll shelter request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -82,6 +83,11 @@ namespace ProiectSoft.Services.SheltersServices
             if (string.IsNullOrEmpty(searchName))
             {
                 shelters = shelters.Where(x => x.Name!.Contains(searchName)).ToList();
+            }
+
+            if (filters.Count() > 0)
+            {
+                shelters = await FilterLoc(shelters, filters);
             }
 
             shelters = await OrderBy(shelters, orderBy, descending);
@@ -110,7 +116,7 @@ namespace ProiectSoft.Services.SheltersServices
             if (shelter == null)
             {
                 _logger.LogError($"OPS! Shelter with id:{id} does not exist in our database");
-                return new Response<ShelterGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException($"There is no shelter with id: {id}");
             }
 
             var shelterGetModel = _mapper.Map<ShelterGetModel>(shelter);
@@ -126,7 +132,7 @@ namespace ProiectSoft.Services.SheltersServices
 
             if (shelter == null) {
                 _logger.LogError($"There is no shelter with ID:{id} in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no shelter with id: {id}");
             }
 
             var shelterLoc = await _context.Locations.FirstOrDefaultAsync(x => x.Id == model.LocationId);
@@ -135,12 +141,12 @@ namespace ProiectSoft.Services.SheltersServices
             if (shelterLoc == null)
             {
                 _logger.LogError($"There is no location with ID:{model.LocationId}. Update failed");
-                return;
+                throw new KeyNotFoundException($"There is no location with id: {model.LocationId}");
             }
             if (shelterOrg == null)
             {
                 _logger.LogError($"There is no organisation with ID:{model.OrganisationId}. Update failed");
-                return;
+                throw new KeyNotFoundException($"There is no organisation with id: {model.OrganisationId}");
             }
 
             _mapper.Map<ShelterPutModel, Shelter>(model, shelter);
@@ -170,6 +176,27 @@ namespace ProiectSoft.Services.SheltersServices
             }
 
             return shelters;
+        }
+
+        private async Task<List<Shelter>> FilterLoc(List<Shelter> shelters, string[] filters)
+        {
+            if (filters.Length == 1)
+            {
+                shelters = shelters.Where(x => x.Name.Contains(filters[0])).ToList();
+            }
+            else if (filters.Length == 2)
+            {
+                shelters = shelters.Where(x => x.Name.Contains(filters[0]) || 
+                x.availableSpace > Int32.Parse(filters[1])).ToList();
+            }
+            else if (filters.Length == 3) //aici pe front ar putea sa faca dupa data mm/dd/yyyy sau dupa mm sau dd sau yyyy
+            {
+                shelters = shelters.Where(x => x.Name.Contains(filters[0]) ||
+                x.availableSpace > Int32.Parse(filters[1]) ||
+                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[3])).ToList();
+            }
+
+            return shelters.ToList();
         }
     }
 }

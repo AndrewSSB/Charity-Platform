@@ -21,11 +21,12 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchName,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending)
+            [FromQuery] bool descending,
+            [FromQuery] string[] filters)
         {
             var route = Request.Path.Value;
 
-            var volunteers = await _volunteerServices.GetAll(filter, route, searchName, orderBy, descending);
+            var volunteers = await _volunteerServices.GetAll(filter, route, searchName, orderBy, descending, filters);
 
             if (volunteers.Succeeded == false)
             {
@@ -40,23 +41,15 @@ namespace ProiectSOFT.Controllers
         {
             var volunteer = await _volunteerServices.GetById(id);
 
-            if (volunteer.Succeeded)
-            {
-                return Ok(volunteer);
-            }
-
-            return NotFound(volunteer.Message);
+            return Ok(volunteer);
         }
 
         [HttpPost("AddVolunteer")]
         public async Task<IActionResult> AddVolunteer([FromBody][Required] VolunteerPostModel model)
         {
-            if (model == null)
-                return BadRequest();
-
             await _volunteerServices.Create(model);
 
-            return Ok();
+            return Ok("Created succesfully");
         }
 
         [HttpPut("UpdateVolunteer")]
@@ -64,7 +57,7 @@ namespace ProiectSOFT.Controllers
         {
             await _volunteerServices.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteVolunteer")]
@@ -72,7 +65,7 @@ namespace ProiectSOFT.Controllers
         {
             await _volunteerServices.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

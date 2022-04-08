@@ -23,11 +23,12 @@ namespace ProiectSOFT.Controllers
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
             [FromQuery] string? searchUserName,
             [FromQuery] string? orderBy,
-            [FromQuery] bool descending)
+            [FromQuery] bool descending,
+            [FromQuery] string[] filters)
         {
             var route = Request.Path.Value;
 
-            var users = await _userServices.GetAll(filter, route, searchUserName, orderBy, descending);
+            var users = await _userServices.GetAll(filter, route, searchUserName, orderBy, descending, filters);
 
             if (users.Succeeded == false)
             {
@@ -42,12 +43,7 @@ namespace ProiectSOFT.Controllers
         {
             var user = await _userServices.GetById(id);
 
-            if (user.Succeeded)
-            {
-                return Ok(user);
-            }
-
-            return NotFound(user.Message);
+            return Ok(user);
         }
 
         [HttpPut("UpdateUser")]
@@ -55,7 +51,7 @@ namespace ProiectSOFT.Controllers
         {
             await _userServices.Update(model, id);
 
-            return Ok();
+            return Ok("Updated succesfully");
         }
 
         [HttpDelete("DeleteUser")]
@@ -63,7 +59,7 @@ namespace ProiectSOFT.Controllers
         {
             await _userServices.Delete(id);
 
-            return Ok();
+            return Ok("Deleted succesfully");
         }
     }
 }

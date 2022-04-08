@@ -37,14 +37,15 @@ namespace ProiectSoft.Services.UsersServices
             if (user == null)
             {
                 _logger.LogError($"OPS! User with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"Thre is no user with id:{id}");
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route, string searchUserName, string orderBy, bool descending)
+        public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route, 
+            string searchUserName, string orderBy, bool descending, string[] filters)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll users request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -59,6 +60,11 @@ namespace ProiectSoft.Services.UsersServices
             }
 
             users = await OrderBy(users, orderBy, descending);
+
+            if (filters.Count() > 0)
+            {
+                users = await FilterUser(users, filters);
+            }
 
             var userModels = new List<UserGetModel>();
 
@@ -84,7 +90,7 @@ namespace ProiectSoft.Services.UsersServices
             if (user == null)
             {
                 _logger.LogError($"OPS! User with id:{id} does not exist in our database");
-                return new Response<UserGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException($"Thre is no user with id: {id}");
             }
 
             var userGetModel = _mapper.Map<UserGetModel>(user);
@@ -101,7 +107,7 @@ namespace ProiectSoft.Services.UsersServices
             if (user == null)
             {
                 _logger.LogError($"OPS! User with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no user with id:{id}");
             }
 
             _mapper.Map<UserPutModel, User>(model, user);
@@ -128,6 +134,26 @@ namespace ProiectSoft.Services.UsersServices
             }
 
             return users;
+        }
+
+        private async Task<List<User>> FilterUser(List<User> users, string[] filters)
+        {
+            if (filters.Length == 1)
+            {
+                users = users.Where(x => x.UserName.Contains(filters[0])).ToList();
+            }
+            else if (filters.Length == 2)
+            {
+                users = users.Where(x => x.UserName.Contains(filters[0]) || 
+                x.FirstName.Contains(filters[1])).ToList();
+            }else if (filters.Length == 3)
+            {
+                users = users.Where(x => x.UserName.Contains(filters[0]) ||
+                x.FirstName.Contains(filters[1]) ||
+                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[2]) ).ToList();
+            }
+
+            return users.ToList();
         }
     }
 }

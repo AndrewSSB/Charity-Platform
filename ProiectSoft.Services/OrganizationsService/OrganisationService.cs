@@ -41,7 +41,7 @@ namespace ProiectSoft.Services.OrganizationService
             if (caseId == null) 
             {
                 _logger.LogError($"OPS! {model.Name} does not exist in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no case with id: {model.CasesId}"); 
             }
 
             var organisation = _mapper.Map<Organisation>(model);
@@ -60,14 +60,15 @@ namespace ProiectSoft.Services.OrganizationService
             if (organisation == null)
             {
                 _logger.LogError($"There is no organisation with ID:{id} in our database");
-                return;
+                throw new KeyNotFoundException($"There is no organisation with id: {id}");
             }
 
             _context.Organisations.Remove(organisation);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending)
+        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route, 
+            string searchName, string orderBy, bool descending, string[] filters)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll organisation request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -79,6 +80,11 @@ namespace ProiectSoft.Services.OrganizationService
             if (!string.IsNullOrEmpty(searchName))
             {
                 organisations = organisations.Where(x => x.Name!.Contains(searchName)).ToList();
+            }
+
+            if (filters.Count() > 0)
+            {
+                organisations = await FilterOrg(organisations, filters);
             }
 
             organisations = await OrderBy(organisations, orderBy, descending);
@@ -107,7 +113,7 @@ namespace ProiectSoft.Services.OrganizationService
             if (organisation == null)
             {
                 _logger.LogError($"OPS! Organisation with id:{id} does not exist in our database");
-                return new Response<OrganisationGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException($"There is no organisation with id: {id}");
             }
 
             var organisationGetModel = _mapper.Map<OrganisationGetModel>(organisation);
@@ -123,7 +129,7 @@ namespace ProiectSoft.Services.OrganizationService
 
             if (organisation == null) {
                 _logger.LogError($"There is no organisation with ID:{id} in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no organisation with id: {id}");
             }
             
             var caseId = await _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId); 
@@ -132,7 +138,7 @@ namespace ProiectSoft.Services.OrganizationService
             if (caseId == null) 
             {
                 _logger.LogError($"There is no case with ID:{model.CasesId}. Update failed");
-                return;
+                throw new KeyNotFoundException($"There is no case with id: {id}");
             }
 
             _mapper.Map<OrganisationPutModel, Organisation>(model, organisation);
@@ -156,6 +162,27 @@ namespace ProiectSoft.Services.OrganizationService
                 default:
                     organisations = descending == false ? organisations.OrderBy(s => s.Id).ToList() : organisations.OrderByDescending(x => x.Id).ToList();
                     break;
+            }
+
+            return organisations;
+        }
+
+        private async Task<List<Organisation>> FilterOrg(List<Organisation> organisations, string[] filters)
+        {
+            if (filters.Length == 1)
+            {
+                organisations = organisations.Where(x => x.Name.Contains(filters[0])).ToList();
+            }
+            else if (filters.Length == 2)
+            {
+                organisations = organisations.Where(x => x.Name.Contains(filters[0]) || 
+                x.Email.Contains(filters[1])).ToList();
+            }
+            else if (filters.Length == 3)
+            {
+                organisations = organisations.Where(x => x.Name.Contains(filters[0]) ||
+                x.Email.Contains(filters[1]) || 
+                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[2])).ToList();
             }
 
             return organisations;

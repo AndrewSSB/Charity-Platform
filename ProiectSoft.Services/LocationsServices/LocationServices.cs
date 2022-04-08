@@ -51,14 +51,15 @@ namespace ProiectSoft.Services.LocationsServices
             if (location == null)
             {
                 _logger.LogError($"OPS! Location with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no location with id: {id}");
             }
 
             _context.Locations.Remove(location);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route, string searchCity, string orderBy, bool descending)
+        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route, 
+            string searchCity, string orderBy, bool descending, string[] filters)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll locations request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
@@ -70,6 +71,11 @@ namespace ProiectSoft.Services.LocationsServices
             if (!string.IsNullOrEmpty(searchCity))
             {
                 locations = locations.Where(x => x.City!.Contains(searchCity)).ToList();
+            }
+
+            if (filters.Count() > 0)
+            {
+                locations = await FilterLocation(locations, filters);
             }
 
             locations = await OrderBy(locations, orderBy, descending);
@@ -141,6 +147,26 @@ namespace ProiectSoft.Services.LocationsServices
             }
 
             return locations;
+        }
+
+        private async Task<List<Location>> FilterLocation(List<Location> locations, string[] filters)
+        {
+            if (filters.Length == 1) //cred ca sigur e o implementare mai buna
+            {
+                locations = locations.Where(x => x.County.Contains(filters[0])).ToList();
+            }
+            else if (filters.Length == 2)
+            {
+                locations = locations.Where(x => x.County.Contains(filters[0]) || x.City.Contains(filters[1])).ToList();
+            }
+            else if (filters.Length == 3)
+            {
+                locations = locations.Where(x => x.County.Contains(filters[0]) || 
+                x.City.Contains(filters[1]) ||
+                x.Street.Contains(filters[2])).ToList();
+            }
+
+            return locations.ToList();
         }
     }
 }

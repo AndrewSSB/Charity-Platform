@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Utils.MiddlewareManager;
 
 namespace ProiectSoft.Services.DonationsServices
 {
@@ -41,12 +42,12 @@ namespace ProiectSoft.Services.DonationsServices
 
             if (user == null) {
                 _logger.LogError($"OPS! {model.UserId} does not exist in our database");
-                return; 
+                throw new KeyNotFoundException($"{model.UserId} does not exist");
             }
 
             if (organisation == null) {
                 _logger.LogError($"OPS! {model.OrganisationId} does not exist in our database");
-                return; 
+                throw new KeyNotFoundException($"{model.OrganisationId} does not exist");
             }
             
             var donation = _mapper.Map<Donation>(model);
@@ -65,7 +66,7 @@ namespace ProiectSoft.Services.DonationsServices
             if (donation == null)
             {
                 _logger.LogError($"OPS! Donation with id:{id} does not exist in our database");
-                return;
+                throw new KeyNotFoundException($"There is no donation with id {id}");
             }
 
             _context.Donations.Remove(donation);
@@ -107,7 +108,7 @@ namespace ProiectSoft.Services.DonationsServices
             if (donation == null)
             {
                 _logger.LogError($"OPS! Donation with id:{id} does not exist in our database");
-                return new Response<DonationGetModel>(false, $"Id {id} doesn't exist");
+                throw new KeyNotFoundException($"There is no donation with id {id}");
             }
             
             var donationGetModel = _mapper.Map<DonationGetModel>(donation);
@@ -123,7 +124,7 @@ namespace ProiectSoft.Services.DonationsServices
 
             if (donation == null) {
                 _logger.LogError($"There is no donation with ID:{id} in our database");
-                return; 
+                throw new KeyNotFoundException($"There is no donation with id: {id}"); 
             }
 
             var userId = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.UserId);                   //verific daca cheile pe care vr sa le introduc exista in baza
@@ -132,12 +133,12 @@ namespace ProiectSoft.Services.DonationsServices
             if (userId == null)
             {
                 _logger.LogError($"There is no user with ID:{userId}. Update failed");
-                return;
+                throw new AppException($"There is no user with id: {model.UserId}");
             }
             if (orgId != null)
             {
                 _logger.LogError($"There is no organisation with ID:{orgId}. Update failed");
-                return;
+                throw new AppException($"There is no organisation with id {model.OrganisationId}");
             }
 
             _mapper.Map<DonationPutModel, Donation>(model, donation);
