@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL.Models.RefugeeModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.RefugeesServices;
 using ProiectSoft.Services.UriServicess;
 using System.ComponentModel.DataAnnotations;
@@ -23,17 +24,11 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? searchName,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending,
-            [FromQuery] int? age,
-            [FromQuery] string? flag
-        )
+        public async Task<IActionResult> GetAll([FromQuery] RefugeesFilter filter)
         {
             var route = Request.Path.Value;
 
-            var refugees = await _refugeeServices.GetAll(filter, route, searchName, orderBy, descending, age, flag);
+            var refugees = await _refugeeServices.GetAll(filter, route);
 
             if (refugees.Succeeded == false)
                 return NotFound("Something went wrong in GetAll refugees query");

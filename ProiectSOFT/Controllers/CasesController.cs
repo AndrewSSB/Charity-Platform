@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.CasesModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.CasesServices;
 using System.ComponentModel.DataAnnotations;
 
@@ -19,16 +20,11 @@ namespace ProiectSOFT.Controllers
         }
         //[Authorize(Roles = "Admin")]
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? searchCase,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending,
-            [FromQuery] string[] filters
-        )
+        public async Task<IActionResult> GetAll([FromQuery] CasesFilter filter)
         {
             var route = Request.Path.Value;
 
-            var cases = await _casesService.GetAll(filter, route, searchCase, orderBy, descending, filters);
+            var cases = await _casesService.GetAll(filter, route);
 
             if (cases.Succeeded == false)
             {

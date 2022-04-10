@@ -6,6 +6,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.CasesModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -57,35 +58,48 @@ namespace ProiectSoft.Services.CasesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchCase, string ordBy, bool descending, string[] filters)
+        public async Task<PagedResponse<List<CasesGetModel>>> GetAll(CasesFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll case request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var cases = await _context.Cases
+            IQueryable<Cases> cases = _context.Cases;
+
+            if (!string.IsNullOrEmpty(filter.searchName))
+            {
+                cases = cases.Where(x => x.caseName!.Contains(filter.searchName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.filterName))
+            {
+                cases = cases.Where(x => x.caseName.Contains(filter.filterName));
+            }
+
+            if (filter.filterDate != null)
+            {
+                cases = cases.Where(x => x.startDate.Value.ToString("mm/dd/yyyy").Contains(filter.filterDate.Value.ToString("mm/dd/yyyy")));
+            }
+
+            switch (filter.orderBy) 
+            {
+                case "Name":
+                    cases = !filter.descending ? cases.OrderBy(x => x.caseName) : cases.OrderByDescending(x => x.caseName);
+                    break;
+                case "Date":
+                    cases = !filter.descending ? cases.OrderBy(s => s.DateCreated) : cases.OrderByDescending(x => x.DateCreated);
+                    break;
+                case "Age":
+                    cases = !filter.descending ? cases.OrderBy(s => s.endDate) : cases.OrderByDescending(x => x.endDate);
+                    break;
+                default:
+                    cases = !filter.descending ? cases.OrderBy(s => s.Id) : cases.OrderByDescending(x => x.Id);
+                    break;
+            }
+
+            var casesModels = cases
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
-
-            if (!String.IsNullOrEmpty(searchCase))
-            {
-                cases = cases.Where(x => x.caseName!.Contains(searchCase)).ToList();
-            }
-
-            if (filters.Count() > 0)
-            {
-                cases = await FilterCases(cases, filters);
-            }
-
-            cases = await OrderBy(cases, ordBy, descending);
-
-            var casesModels = new List<CasesGetModel>();
-
-            foreach (var _case in cases)
-            {
-                var _caseModel = _mapper.Map<CasesGetModel>(_case);
-                casesModels.Add(_caseModel);
-            }
+                .Select(_mapper.Map<CasesGetModel>)
+                .ToList();
 
             var casesListCount = await _context.Cases.CountAsync();
 
@@ -126,44 +140,6 @@ namespace ProiectSoft.Services.CasesServices
             _mapper.Map<CasesPutModel, Cases>(model, _case);
 
             await _context.SaveChangesAsync();
-        }
-
-        private async Task<List<Cases>> OrderBy(List<Cases> cases, string orderBy, bool descending)
-        {
-            switch (orderBy)
-            {
-                case "Name":
-                    cases = descending == false ? cases.OrderBy(x => x.caseName).ToList() : cases.OrderByDescending(x => x.caseName).ToList();
-                    break;
-                case "Date":
-                    cases = descending == false ? cases.OrderBy(s => s.DateCreated).ToList() : cases.OrderByDescending(x => x.DateCreated).ToList();
-                    break;
-                case "Age":
-                    cases = descending == false ? cases.OrderBy(s => s.endDate).ToList() : cases.OrderByDescending(x => x.endDate).ToList();
-                    break;
-                default:
-                    cases = descending == false ? cases.OrderBy(s => s.Id).ToList() : cases.OrderByDescending(x => x.Id).ToList();
-                    break;
-            }
-
-            return cases;
-        }
-
-        private async Task<List<Cases>> FilterCases(List<Cases> cases, string[] filters)
-        {
-            if (filters.Length == 1)
-            {
-                cases = cases.Where(x => x.caseName.Contains(filters[0])).ToList(); 
-                 //nu stiu daca sa mai verific cazurile de eroare (adica front-ul ar putea avea grija sa fie introduse doar date care sunt corecte)
-            }
-            else if (filters.Length == 2)
-            {
-                cases = cases.Where(x => x.caseName.Contains(filters[0]) || 
-                x.startDate.Value.ToString("mm/dd/yyy").Contains(filters[1])).ToList();
-
-            }
-
-            return cases;
         }
     }
 }

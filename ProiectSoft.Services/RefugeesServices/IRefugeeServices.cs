@@ -1,5 +1,6 @@
 ﻿using ProiectSoft.DAL.Models.RefugeeModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace ProiectSoft.Services.RefugeesServices
 {
     public interface IRefugeeServices
     {
-        Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending, int? age, string flag);
+        Task<PagedResponse<List<RefugeeGetModel>>> GetAll(RefugeesFilter filter, string route);
         Task<Response<RefugeeGetModel>> GetById(int id);
         Task Create(RefugeePostModel model);
         Task Update(RefugeePutModel model, int id);

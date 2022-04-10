@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.VolunteerModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.VolunteersServices;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,15 +19,11 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? searchName,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending,
-            [FromQuery] string[] filters)
+        public async Task<IActionResult> GetAll([FromQuery] VolunteerFilter filter)
         {
             var route = Request.Path.Value;
 
-            var volunteers = await _volunteerServices.GetAll(filter, route, searchName, orderBy, descending, filters);
+            var volunteers = await _volunteerServices.GetAll(filter, route);
 
             if (volunteers.Succeeded == false)
             {

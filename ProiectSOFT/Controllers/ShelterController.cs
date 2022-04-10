@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.ShelterModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.SheltersServices;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,15 +19,11 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? searchName,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending,
-            [FromQuery] string[] filters)
+        public async Task<IActionResult> GetAll([FromQuery] ShelterFilter filter)
         {
             var route = Request.Path.Value;
 
-            var shelters = await _shelterServices.GetAll(filter, route, searchName, orderBy, descending, filters);
+            var shelters = await _shelterServices.GetAll(filter, route);
 
             if (shelters.Succeeded == false)
             {

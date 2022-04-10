@@ -1,5 +1,6 @@
 ﻿using ProiectSoft.DAL.Models.CasesModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,7 @@ namespace ProiectSoft.Services.CasesServices
 {
     public interface ICasesServices
     {
-        Task<PagedResponse<List<CasesGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchCase, string ordBy, bool descending, string[] filters);
+        Task<PagedResponse<List<CasesGetModel>>> GetAll(CasesFilter filter, string route);
         Task<Response<CasesGetModel>> GetById(int id);
         Task Create(CasesPostModel model);
         Task Update(CasesPutModel model, int id);

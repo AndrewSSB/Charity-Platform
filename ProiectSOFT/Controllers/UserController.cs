@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.UserModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UsersServices;
 using System.ComponentModel.DataAnnotations;
 
@@ -20,15 +21,11 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? searchUserName,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending,
-            [FromQuery] string[] filters)
+        public async Task<IActionResult> GetAll([FromQuery] UserFilter filter)
         {
             var route = Request.Path.Value;
 
-            var users = await _userServices.GetAll(filter, route, searchUserName, orderBy, descending, filters);
+            var users = await _userServices.GetAll(filter, route);
 
             if (users.Succeeded == false)
             {

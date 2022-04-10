@@ -7,6 +7,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.DonationModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -73,28 +74,42 @@ namespace ProiectSoft.Services.DonationsServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<DonationGetModel>>> GetAll(PaginationFilter filter, string route, string orderBy, bool descending)
+        public async Task<PagedResponse<List<DonationGetModel>>> GetAll(DonationFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll donation request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var donations = await _context.Donations
+            IQueryable<Donation> donations = _context.Donations; //good work with filters
+
+            /*if (filter.prop != null) //filtrare mai buna
+            {
+                donations = donations.Where(age > prop);
+            }*/
+
+            switch (filter.orderBy)
+            {
+                case "Date":
+                    donations = !filter.descending ? donations.OrderBy(x => x.DateCreated) : donations.OrderByDescending(x => x.DateCreated);
+                    break;
+                case "User":
+                    donations = !filter.descending ? donations.OrderBy(s => s.UserId) : donations.OrderByDescending(x => x.UserId);
+                    break;
+                case "Organisation":
+                    donations = !filter.descending ? donations.OrderBy(s => s.OrganisationId) : donations.OrderByDescending(x => x.OrganisationId);
+                    break;
+                default:
+                    donations = !filter.descending ? donations.OrderBy(s => s.Id) : donations.OrderByDescending(x => x.Id);
+                    break;
+            }
+
+            var result = donations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
-
-            donations = await OrderBy(donations, orderBy, descending);
-
-            var donationsModels = new List<DonationGetModel>();
-
-            foreach (var donation in donations)
-            {
-                var donationsModel = _mapper.Map<DonationGetModel>(donation);
-                donationsModels.Add(donationsModel);
-            }
+                .Select(_mapper.Map<DonationGetModel>)
+                .ToList();
 
             var donationsListCount = await _context.Donations.CountAsync();
 
-            var pagedResponse = PaginationHelper.CreatePagedReponse<DonationGetModel>(donationsModels, filter, donationsListCount, _uriServices, route);
+            var pagedResponse = PaginationHelper.CreatePagedReponse<DonationGetModel>(result, filter, donationsListCount, _uriServices, route);
 
             return pagedResponse;
         }
@@ -135,7 +150,7 @@ namespace ProiectSoft.Services.DonationsServices
                 _logger.LogError($"There is no user with ID:{userId}. Update failed");
                 throw new AppException($"There is no user with id: {model.UserId}");
             }
-            if (orgId != null)
+            if (orgId == null)
             {
                 _logger.LogError($"There is no organisation with ID:{orgId}. Update failed");
                 throw new AppException($"There is no organisation with id {model.OrganisationId}");
@@ -144,27 +159,6 @@ namespace ProiectSoft.Services.DonationsServices
             _mapper.Map<DonationPutModel, Donation>(model, donation);
 
             await _context.SaveChangesAsync();
-        }
-
-        private async Task<List<Donation>> OrderBy(List<Donation> donations, string orderBy, bool descending)
-        {
-            switch (orderBy)
-            {
-                case "Date":
-                    donations = descending == false ? donations.OrderBy(x => x.DateCreated).ToList() : donations.OrderByDescending(x => x.DateCreated).ToList();
-                    break;
-                case "User":
-                    donations = descending == false ? donations.OrderBy(s => s.UserId).ToList() : donations.OrderByDescending(x => x.UserId).ToList();
-                    break;
-                case "Organisation":
-                    donations = descending == false ? donations.OrderBy(s => s.OrganisationId).ToList() : donations.OrderByDescending(x => x.OrganisationId).ToList();
-                    break;
-                default:
-                    donations = descending == false ? donations.OrderBy(s => s.Id).ToList() : donations.OrderByDescending(x => x.Id).ToList();
-                    break;
-            }
-
-            return donations;
         }
     }
 }

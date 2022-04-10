@@ -6,6 +6,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.UserModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -44,35 +45,53 @@ namespace ProiectSoft.Services.UsersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<UserGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchUserName, string orderBy, bool descending, string[] filters)
+        public async Task<PagedResponse<List<UserGetModel>>> GetAll(UserFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll users request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var users = await _context.Users
+            IQueryable<User> users = _context.Users;
+
+            if (!String.IsNullOrEmpty(filter.searchName))
+            {
+                users = users.Where(x => x.UserName!.Contains(filter.searchName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.userName))
+            {
+                users = users.Where(x => x.UserName!.Contains(filter.userName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.firstName))
+            {
+                users = users.Where(x => x.FirstName!.Contains(filter.firstName));
+            }
+
+            if (filter.dateCreated != null)
+            {
+                users = users.Where(x => x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filter.dateCreated.Value.ToString("mm/dd/yyyy")));
+            }
+
+            switch (filter.orderBy)
+            {
+                case "Name":
+                    users = !filter.descending == false ? users.OrderBy(x => x.UserName) : users.OrderByDescending(x => x.UserName);
+                    break;
+                case "Email":
+                    users = !filter.descending == false ? users.OrderBy(s => s.Email) : users.OrderByDescending(x => x.Email);
+                    break;
+                case "Age":
+                    users = !filter.descending == false ? users.OrderBy(s => s.FirstName) : users.OrderByDescending(x => x.FirstName);
+                    break;
+                default:
+                    users = !filter.descending == false ? users.OrderBy(s => s.LastName) : users.OrderByDescending(x => x.LastName);
+                    break;
+            }
+
+            var userModels = users
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
-
-            if (!String.IsNullOrEmpty(searchUserName))
-            {
-                users = users.Where(x => x.UserName!.Contains(searchUserName)).ToList();
-            }
-
-            users = await OrderBy(users, orderBy, descending);
-
-            if (filters.Count() > 0)
-            {
-                users = await FilterUser(users, filters);
-            }
-
-            var userModels = new List<UserGetModel>();
-
-            foreach (var user in users)
-            {
-                var userModel = _mapper.Map<UserGetModel>(user);
-                userModels.Add(userModel);
-            }
+                .Select(_mapper.Map<UserGetModel>)
+                .ToList();
 
             var usersListCount = await _context.Users.CountAsync();
 
@@ -113,47 +132,6 @@ namespace ProiectSoft.Services.UsersServices
             _mapper.Map<UserPutModel, User>(model, user);
 
             await _context.SaveChangesAsync();
-        }
-
-        private async Task<List<User>> OrderBy(List<User> users, string orderBy, bool descending)
-        {
-            switch (orderBy)
-            {
-                case "Name":
-                    users = descending == false ? users.OrderBy(x => x.UserName).ToList() : users.OrderByDescending(x => x.UserName).ToList();
-                    break;
-                case "Email":
-                    users = descending == false ? users.OrderBy(s => s.Email).ToList() : users.OrderByDescending(x => x.Email).ToList();
-                    break;
-                case "Age":
-                    users = descending == false ? users.OrderBy(s => s.FirstName).ToList() : users.OrderByDescending(x => x.FirstName).ToList();
-                    break;
-                default:
-                    users = descending == false ? users.OrderBy(s => s.LastName).ToList() : users.OrderByDescending(x => x.LastName).ToList();
-                    break;
-            }
-
-            return users;
-        }
-
-        private async Task<List<User>> FilterUser(List<User> users, string[] filters)
-        {
-            if (filters.Length == 1)
-            {
-                users = users.Where(x => x.UserName.Contains(filters[0])).ToList();
-            }
-            else if (filters.Length == 2)
-            {
-                users = users.Where(x => x.UserName.Contains(filters[0]) || 
-                x.FirstName.Contains(filters[1])).ToList();
-            }else if (filters.Length == 3)
-            {
-                users = users.Where(x => x.UserName.Contains(filters[0]) ||
-                x.FirstName.Contains(filters[1]) ||
-                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[2]) ).ToList();
-            }
-
-            return users.ToList();
         }
     }
 }

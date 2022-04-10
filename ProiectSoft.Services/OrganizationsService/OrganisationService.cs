@@ -6,6 +6,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.OrganisationModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.OrganizationsService;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
@@ -67,35 +68,54 @@ namespace ProiectSoft.Services.OrganizationService
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchName, string orderBy, bool descending, string[] filters)
+        public async Task<PagedResponse<List<OrganisationGetModel>>> GetAll(OrganisationFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll organisation request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var organisations = await _context.Organisations
+            IQueryable<Organisation> organisations = _context.Organisations;
+
+            if (!string.IsNullOrEmpty(filter.searchName))
+            {
+                organisations = organisations.Where(x => x.Name!.Contains(filter.searchName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.Name))
+            {
+                organisations = organisations.Where(x => x.Name!.Contains(filter.Name));
+            }
+
+            if (!string.IsNullOrEmpty(filter.email))
+            {
+                organisations = organisations.Where(x => x.Email!.Contains(filter.email));
+            }
+
+            if (filter.DateCreated != null)
+            {
+                organisations = organisations.Where(x => x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filter.DateCreated.Value.ToString("mm/dd/yyyy")));
+            }
+
+            switch (filter.orderBy)
+            {
+                case "Name":
+                    organisations = !filter.descending ? organisations.OrderBy(x => x.Name) : organisations.OrderByDescending(x => x.Name);
+                    break;
+                case "Date":
+                    organisations = !filter.descending ? organisations.OrderBy(s => s.CasesId) : organisations.OrderByDescending(x => x.CasesId);
+                    break;
+                case "Age":
+                    organisations = !filter.descending ? organisations.OrderBy(s => s.DateCreated) : organisations.OrderByDescending(x => x.DateCreated);
+                    break;
+                default:
+                    organisations = !filter.descending ? organisations.OrderBy(s => s.Id) : organisations.OrderByDescending(x => x.Id);
+                    break;
+            }
+
+
+            var organisationModels = organisations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
-
-            if (!string.IsNullOrEmpty(searchName))
-            {
-                organisations = organisations.Where(x => x.Name!.Contains(searchName)).ToList();
-            }
-
-            if (filters.Count() > 0)
-            {
-                organisations = await FilterOrg(organisations, filters);
-            }
-
-            organisations = await OrderBy(organisations, orderBy, descending);
-
-            var organisationModels = new List<OrganisationGetModel>();
-
-            foreach (var organisation in organisations)
-            {
-                var _caseModel = _mapper.Map<OrganisationGetModel>(organisation);
-                organisationModels.Add(_caseModel);
-            }
+                .Select(_mapper.Map<OrganisationGetModel>)
+                .ToList();
 
             var orgListCount = await _context.Organisations.CountAsync();
 
@@ -133,7 +153,6 @@ namespace ProiectSoft.Services.OrganizationService
             }
             
             var caseId = await _context.Cases.FirstOrDefaultAsync(x => x.Id == model.CasesId); 
-            //ar trebui sa verific daca exista cheia pe care o modific, daca exista o schimb, daca nu ramane aceeasi
 
             if (caseId == null) 
             {
@@ -144,48 +163,6 @@ namespace ProiectSoft.Services.OrganizationService
             _mapper.Map<OrganisationPutModel, Organisation>(model, organisation);
 
             await _context.SaveChangesAsync();
-        }
-
-        private async Task<List<Organisation>> OrderBy(List<Organisation> organisations, string orderBy, bool descending)
-        {
-            switch (orderBy)
-            {
-                case "Name":
-                    organisations = descending == false ? organisations.OrderBy(x => x.Name).ToList() : organisations.OrderByDescending(x => x.Name).ToList();
-                    break;
-                case "Date":
-                    organisations = descending == false ? organisations.OrderBy(s => s.CasesId).ToList() : organisations.OrderByDescending(x => x.CasesId).ToList();
-                    break;
-                case "Age":
-                    organisations = descending == false ? organisations.OrderBy(s => s.DateCreated).ToList() : organisations.OrderByDescending(x => x.DateCreated).ToList();
-                    break;
-                default:
-                    organisations = descending == false ? organisations.OrderBy(s => s.Id).ToList() : organisations.OrderByDescending(x => x.Id).ToList();
-                    break;
-            }
-
-            return organisations;
-        }
-
-        private async Task<List<Organisation>> FilterOrg(List<Organisation> organisations, string[] filters)
-        {
-            if (filters.Length == 1)
-            {
-                organisations = organisations.Where(x => x.Name.Contains(filters[0])).ToList();
-            }
-            else if (filters.Length == 2)
-            {
-                organisations = organisations.Where(x => x.Name.Contains(filters[0]) || 
-                x.Email.Contains(filters[1])).ToList();
-            }
-            else if (filters.Length == 3)
-            {
-                organisations = organisations.Where(x => x.Name.Contains(filters[0]) ||
-                x.Email.Contains(filters[1]) || 
-                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[2])).ToList();
-            }
-
-            return organisations;
         }
     }
 }

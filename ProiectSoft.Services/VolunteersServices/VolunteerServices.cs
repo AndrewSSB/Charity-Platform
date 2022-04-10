@@ -6,6 +6,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.VolunteerModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -65,35 +66,58 @@ namespace ProiectSoft.Services.VolunteersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchName, string orderBy, bool descending, string[] filters)
+        public async Task<PagedResponse<List<VolunteerGetModel>>> GetAll(VolunteerFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll volunteers request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var volunteers = await _context.Volunteers
+            IQueryable<Volunteer> volunteers = _context.Volunteers;
+
+            if (!string.IsNullOrEmpty(filter.searchName))
+            {
+                volunteers = volunteers.Where(x => x.Name!.Contains(filter.searchName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.name))
+            {
+                volunteers = volunteers.Where(x => x.Name!.Contains(filter.name));
+            }
+
+            if (!string.IsNullOrEmpty(filter.lastName))
+            {
+                volunteers = volunteers.Where(x => x.lastName!.Contains(filter.lastName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.position))
+            {
+                volunteers = volunteers.Where(x => x.Position!.Contains(filter.position));
+            }
+
+            if (filter.dateCreated != null)
+            {
+                volunteers = volunteers.Where(x => x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filter.dateCreated.Value.ToString("mm/dd/yyyy")));
+            }
+
+            switch (filter.orderBy)
+            {
+                case "Name":
+                    volunteers = !filter.descending ? volunteers.OrderBy(x => x.Name) : volunteers.OrderByDescending(x => x.Name);
+                    break;
+                case "Date":
+                    volunteers = !filter.descending ? volunteers.OrderBy(s => s.DateCreated) : volunteers.OrderByDescending(x => x.DateCreated);
+                    break;
+                case "Position":
+                    volunteers = !filter.descending ? volunteers.OrderBy(s => s.Position): volunteers.OrderByDescending(x => x.Position);
+                    break;
+                default:
+                    volunteers = !filter.descending ? volunteers.OrderBy(s => s.lastName) : volunteers.OrderByDescending(x => x.lastName);
+                    break;
+            }
+
+            var volunteerModels = volunteers
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
-
-            if (string.IsNullOrEmpty(searchName))
-            {
-                volunteers = volunteers.Where(x => x.Name!.Contains(searchName)).ToList();
-            }
-
-            if (filters.Count() > 0)
-            {
-                volunteers = await FilterVol(volunteers, filters);
-            }
-
-            volunteers = await OrderBy(volunteers, orderBy, descending);
-
-            var volunteerModels = new List<VolunteerGetModel>();
-
-            foreach (var volunteer in volunteers)
-            {
-                var volunteerModel = _mapper.Map<VolunteerGetModel>(volunteer);
-                volunteerModels.Add(volunteerModel);
-            }
+                .Select(_mapper.Map<VolunteerGetModel>)
+                .ToList();
 
             var volunteerListCount = await _context.Volunteers.CountAsync();
 
@@ -139,55 +163,6 @@ namespace ProiectSoft.Services.VolunteersServices
             _mapper.Map<VolunteerPutModel, Volunteer>(model, volunteer);
 
             await _context.SaveChangesAsync();
-        }
-
-        private async Task<List<Volunteer>> OrderBy(List<Volunteer> refugees, string orderBy, bool descending)
-        {
-            switch (orderBy)
-            {
-                case "Name":
-                    refugees = descending == false ? refugees.OrderBy(x => x.Name).ToList() : refugees.OrderByDescending(x => x.Name).ToList();
-                    break;
-                case "Date":
-                    refugees = descending == false ? refugees.OrderBy(s => s.DateCreated).ToList() : refugees.OrderByDescending(x => x.DateCreated).ToList();
-                    break;
-                case "Position":
-                    refugees = descending == false ? refugees.OrderBy(s => s.Position).ToList() : refugees.OrderByDescending(x => x.Position).ToList();
-                    break;
-                default:
-                    refugees = descending == false ? refugees.OrderBy(s => s.lastName).ToList() : refugees.OrderByDescending(x => x.lastName).ToList();
-                    break;
-            }
-
-            return refugees;
-        }
-
-        private async Task<List<Volunteer>> FilterVol(List<Volunteer> volunteers, string[] filters)
-        {
-            if (filters.Length == 1)
-            {
-                volunteers = volunteers.Where(x => x.Name.Contains(filters[0])).ToList();
-            }
-            else if (filters.Length == 2)
-            {
-                volunteers = volunteers.Where(x => x.Name.Contains(filters[0]) ||
-                x.lastName.Contains(filters[1])).ToList();
-            }
-            else if (filters.Length == 3)
-            {
-                volunteers = volunteers.Where(x => x.Name.Contains(filters[0]) ||
-                x.lastName.Contains(filters[1]) ||
-                x.Position.Contains(filters[2])).ToList();
-            }
-            else if (filters.Length == 4)
-            {
-                volunteers = volunteers.Where(x => x.Name.Contains(filters[0]) ||
-                x.lastName.Contains(filters[1]) ||
-                x.Position.Contains(filters[2]) ||
-                x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filters[3])).ToList();
-            }
-
-            return volunteers.ToList();
         }
     }
 }

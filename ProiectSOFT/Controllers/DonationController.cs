@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.DonationModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.DonationsServices;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,13 +19,11 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending)
+        public async Task<IActionResult> GetAll([FromQuery] DonationFilter filter)
         {
             var route = Request.Path.Value;
 
-            var donations = await _donationServices.GetAll(filter, route, orderBy, descending);
+            var donations = await _donationServices.GetAll(filter, route);
 
             if (donations.Succeeded == false)
             {

@@ -7,6 +7,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.RefugeeModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -83,37 +84,57 @@ namespace ProiectSoft.Services.RefugeesServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(PaginationFilter filter, string route, string searchName, string orderBy, bool descending, int? age, string flag)
+        public async Task<PagedResponse<List<RefugeeGetModel>>> GetAll(RefugeesFilter filter, string route) 
+            //string searchName, string orderBy, bool descending, int? age, string flag)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll refugee request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var refugees = await _context.Refugees
+            /*var refugees = await _context.Refugees
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
+                .ToListAsync(); */
+
+            IQueryable<Refugee> refugees = _context.Refugees;
 
             //search by name
-            if (!String.IsNullOrEmpty(searchName))
+            if (!String.IsNullOrEmpty(filter.searchName))
             {
-                refugees = refugees.Where(x => x.Name!.Contains(searchName)).ToList(); //nu merge ToListAsync();
+                refugees = refugees.Where(x => x.Name!.Contains(filter.searchName)); //nu merge ToListAsync();
+            }
+
+            if (!string.IsNullOrEmpty(filter.lastName))
+            {
+                refugees = refugees.Where(x => x.lastName!.Contains(filter.lastName));
             }
 
             //filter option (am facut dupa age, nu aveam dupa ce altceva) //se putea si mai bine. probabil modific pe viitor
-            if (age != null)
+            if (filter.age != null)
             {
-                refugees = await Filter(refugees, age, flag);
+                refugees = await Filter(refugees, filter);
             }
             // daca pune ceva dupa care nu se poate ordona -> intra pe default si in plus daca descending e true atunci
             //atunci trebuie sa pot intra in functie si sa ordonez default descrescator e gandita cam prost stiu, poate o modfic
-            refugees = await OrderBy(refugees, orderBy, descending);
-
-            var refugeeModels = new List<RefugeeGetModel>();
-
-            foreach (var refugee in refugees)
+            switch (filter.orderBy)
             {
-                var refugeeModel = _mapper.Map<RefugeeGetModel>(refugee);
-                refugeeModels.Add(refugeeModel);
+                case "Name":
+                    refugees = !filter.descending ? refugees.OrderBy(x => x.Name) : refugees.OrderByDescending(x => x.Name);
+                    break;
+                case "Date":
+                    refugees = !filter.descending ? refugees.OrderBy(s => s.DateCreated) : refugees.OrderByDescending(x => x.DateCreated);
+                    break;
+                case "Age":
+                    refugees = !filter.descending ? refugees.OrderBy(s => s.Age) : refugees.OrderByDescending(x => x.Age);
+                    break;
+                default:
+                    refugees = !filter.descending ? refugees.OrderBy(s => s.lastName) : refugees.OrderByDescending(x => x.lastName);
+                    break;
             }
+
+            var refugeeModels = refugees
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(_mapper.Map<RefugeeGetModel>)
+                .ToList();
 
             var refugeesListCount = await _context.Refugees.CountAsync();
 
@@ -185,17 +206,17 @@ namespace ProiectSoft.Services.RefugeesServices
             return refugees;
         }
 
-        private async Task<List<Refugee>> Filter(List<Refugee> refugees, int? age, string flag)
+        private async Task<IQueryable<Refugee>> Filter(IQueryable<Refugee> refugees, RefugeesFilter filter)
         {
-            if (0 < age && age < 120) //probabil ar trebui sa dau throw la o exceptie (dupa ce fac middleware o sa revin aici)
+            if (0 < filter.age && filter.age < 120) //probabil ar trebui sa dau throw la o exceptie (dupa ce fac middleware o sa revin aici)
             {
-                if (flag == "<")
+                if (filter.flag == "<")
                 {
-                    return refugees.Where(x => x.Age < age).ToList();
+                    return refugees.Where(x => x.Age < filter.age.Value);
                 }
-                else if (flag == ">")
+                else if (filter.flag == ">")
                 {
-                    return refugees.Where(x => x.Age > age).ToList();
+                    return refugees.Where(x => x.Age > filter.age.Value);
                 }
                 else
                 {

@@ -6,6 +6,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.ShelterModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -70,35 +71,56 @@ namespace ProiectSoft.Services.SheltersServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchName, string orderBy, bool descending, string[] filters)
+        public async Task<PagedResponse<List<ShelterGetModel>>> GetAll(ShelterFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll shelter request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var shelters = await _context.Shelters
+            IQueryable<Shelter> shelters = _context.Shelters;
+
+            if (!string.IsNullOrEmpty(filter.searchName))
+            {
+                shelters = shelters.Where(x => x.Name!.Contains(filter.searchName));
+            }
+
+            if (!string.IsNullOrEmpty(filter.name))
+            {
+                shelters = shelters.Where(x => x.Name!.Contains(filter.name));
+            }
+
+            if (filter.availableSpace != null)
+            {
+                shelters = shelters.Where(x => x.availableSpace >= filter.availableSpace);
+            }
+
+            if (filter.dateCreated != null)
+            {
+                shelters = shelters.Where(x => x.DateCreated.Value.ToString("mm/dd/yyyy").Contains(filter.dateCreated.Value.ToString("mm/dd/yyyy")));
+            }
+
+            switch (filter.orderBy)
+            {
+                case "Name":
+                    shelters = !filter.descending == false ? shelters.OrderBy(x => x.Name) : shelters.OrderByDescending(x => x.Name);
+                    break;
+                case "Date":
+                    shelters = !filter.descending == false ? shelters.OrderBy(s => s.DateCreated) : shelters.OrderByDescending(x => x.DateCreated);
+                    break;
+                case "Space":
+                    shelters = !filter.descending == false ? shelters.OrderBy(s => s.availableSpace) : shelters.OrderByDescending(x => x.availableSpace);
+                    break;
+                case "Email":
+                    shelters = !filter.descending == false ? shelters.OrderBy(s => s.Email) : shelters.OrderByDescending(x => x.Email);
+                    break;
+                default:
+                    shelters = !filter.descending == false ? shelters.OrderBy(s => s.Id) : shelters.OrderByDescending(x => x.Id);
+                    break;
+            }
+
+            var shelterModels = shelters
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
-
-            if (string.IsNullOrEmpty(searchName))
-            {
-                shelters = shelters.Where(x => x.Name!.Contains(searchName)).ToList();
-            }
-
-            if (filters.Count() > 0)
-            {
-                shelters = await FilterLoc(shelters, filters);
-            }
-
-            shelters = await OrderBy(shelters, orderBy, descending);
-
-            var shelterModels = new List<ShelterGetModel>();
-
-            foreach (var shetler in shelters)
-            {
-                var shelterModel = _mapper.Map<ShelterGetModel>(shetler);
-                shelterModels.Add(shelterModel);
-            }
+                .Select(_mapper.Map<ShelterGetModel>)
+                .ToList();
 
             var shelterListCount = await _context.Shelters.CountAsync();
 

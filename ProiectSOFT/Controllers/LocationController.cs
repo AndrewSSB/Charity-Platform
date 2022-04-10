@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.LocationModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.LocationsServices;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,15 +19,11 @@ namespace ProiectSOFT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter,
-            [FromQuery] string? searchCity,
-            [FromQuery] string? orderBy,
-            [FromQuery] bool descending,
-            [FromQuery] string[] filters)
+        public async Task<IActionResult> GetAll([FromQuery] LocationFilter filter)
         {
             var route = Request.Path.Value;
 
-            var locations = await _locationServices.GetAll(filter, route, searchCity, orderBy, descending, filters);
+            var locations = await _locationServices.GetAll(filter, route);
 
             if (locations.Succeeded == false)
             {

@@ -7,6 +7,7 @@ using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
 using ProiectSoft.DAL.Models.LocationModels;
 using ProiectSoft.DAL.Wrappers;
+using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.UriServicess;
 using Serilog.Context;
 using System;
@@ -58,35 +59,58 @@ namespace ProiectSoft.Services.LocationsServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(PaginationFilter filter, string route, 
-            string searchCity, string orderBy, bool descending, string[] filters)
+        public async Task<PagedResponse<List<LocationGetModel>>> GetAll(LocationFilter filter, string route)
         {
             LogContext.PushProperty("IdentificationMessage", $"GetAll locations request for Page:{filter.PageNumber}, with number of objects: {filter.PageSize}");
 
-            var locations = await _context.Locations
+            /*var locations = await _context.Locations
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync();
+                .ToListAsync(); */
 
-            if (!string.IsNullOrEmpty(searchCity))
+            IQueryable<Location> locations = _context.Locations;
+
+            if (!string.IsNullOrEmpty(filter.searchName))
             {
-                locations = locations.Where(x => x.City!.Contains(searchCity)).ToList();
+                locations = locations.Where(x => x.City!.Contains(filter.searchName));
             }
 
-            if (filters.Count() > 0)
+            if (!string.IsNullOrEmpty(filter.county))
             {
-                locations = await FilterLocation(locations, filters);
+                locations = locations.Where(x => x.County!.Contains(filter.county));
             }
 
-            locations = await OrderBy(locations, orderBy, descending);
-
-            var locationModels = new List<LocationGetModel>();
-
-            foreach (var location in locations)
+            if (!string.IsNullOrEmpty(filter.city))
             {
-                var locationModel = _mapper.Map<LocationGetModel>(location);
-                locationModels.Add(locationModel);
+                locations = locations.Where(x => x.City!.Contains(filter.city));
             }
+
+            if (!string.IsNullOrEmpty(filter.street))
+            {
+                locations = locations.Where(x => x.Street!.Contains(filter.street));
+            }
+
+            switch (filter.orderBy)
+            {
+                case "County":
+                    locations = !filter.descending ? locations.OrderBy(x => x.County) : locations.OrderByDescending(x => x.County);
+                    break;
+                case "City":
+                    locations = !filter.descending ? locations.OrderBy(s => s.City) : locations.OrderByDescending(x => x.City);
+                    break;
+                case "Street":
+                    locations = !filter.descending ? locations.OrderBy(s => s.Street) : locations.OrderByDescending(x => x.Street);
+                    break;
+                default:
+                    locations = !filter.descending ? locations.OrderBy(s => s.Id) : locations.OrderByDescending(x => x.Id);
+                    break;
+            }
+
+            var locationModels = locations
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(_mapper.Map<LocationGetModel>)
+                .ToList();
 
             var locationsListCount = await _context.Locations.CountAsync();
 
@@ -126,47 +150,6 @@ namespace ProiectSoft.Services.LocationsServices
             _mapper.Map<LocationPutModel, Location>(model, location);
 
             await _context.SaveChangesAsync();
-        }
-
-        private async Task<List<Location>> OrderBy(List<Location> locations, string orderBy, bool descending)
-        {
-            switch (orderBy)
-            {
-                case "County":
-                    locations = descending == false ? locations.OrderBy(x => x.County).ToList() : locations.OrderByDescending(x => x.County).ToList();
-                    break;
-                case "City":
-                    locations = descending == false ? locations.OrderBy(s => s.City).ToList() : locations.OrderByDescending(x => x.City).ToList();
-                    break;
-                case "Street":
-                    locations = descending == false ? locations.OrderBy(s => s.Street).ToList() : locations.OrderByDescending(x => x.Street).ToList();
-                    break;
-                default:
-                    locations = descending == false ? locations.OrderBy(s => s.Id).ToList() : locations.OrderByDescending(x => x.Id).ToList();
-                    break;
-            }
-
-            return locations;
-        }
-
-        private async Task<List<Location>> FilterLocation(List<Location> locations, string[] filters)
-        {
-            if (filters.Length == 1) //cred ca sigur e o implementare mai buna
-            {
-                locations = locations.Where(x => x.County.Contains(filters[0])).ToList();
-            }
-            else if (filters.Length == 2)
-            {
-                locations = locations.Where(x => x.County.Contains(filters[0]) || x.City.Contains(filters[1])).ToList();
-            }
-            else if (filters.Length == 3)
-            {
-                locations = locations.Where(x => x.County.Contains(filters[0]) || 
-                x.City.Contains(filters[1]) ||
-                x.Street.Contains(filters[2])).ToList();
-            }
-
-            return locations.ToList();
         }
     }
 }
