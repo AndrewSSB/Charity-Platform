@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL.Models.RefugeeModels;
@@ -11,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProiectSOFT.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class RefugeesController : Controller
     {

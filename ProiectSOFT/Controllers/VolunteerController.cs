@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.VolunteerModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.DAL.Wrappers.Filters;
@@ -8,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProiectSOFT.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class VolunteerController : Controller
     {

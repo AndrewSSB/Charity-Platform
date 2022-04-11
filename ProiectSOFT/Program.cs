@@ -22,6 +22,7 @@ using SendGrid.Helpers.Mail;
 using Serilog;
 using System.Configuration;
 using System.Text;
+using System.Text.Json.Serialization;
 using Utils;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -120,6 +121,11 @@ builder.Services.AddSwaggerGen(opt =>
         }
     });
 });
+
+//Pentru a evita ciclurile infinite
+
+builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 
 //Call Services
 builder.Services.AddServices();

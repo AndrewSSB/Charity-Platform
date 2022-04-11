@@ -34,6 +34,7 @@ namespace ProiectSoft.DAL.Mappings
             CreateMap<Organisation, OrganisationGetModel>().ReverseMap();
             CreateMap<Organisation, OrganisationPostModel>().ReverseMap();
             CreateMap<Organisation, OrganisationPutModel>().ReverseMap();
+            CreateMap<Organisation, OrgAvailableSpace>().ReverseMap();
 
             CreateMap<Refugee, RefugeeGetModel>().ReverseMap();
             CreateMap<Refugee, RefugeePostModel>().ReverseMap();

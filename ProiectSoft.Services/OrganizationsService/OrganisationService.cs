@@ -4,7 +4,10 @@ using Microsoft.Extensions.Logging;
 using ProiectSoft.BLL.Helpers;
 using ProiectSoft.DAL;
 using ProiectSoft.DAL.Entities;
+using ProiectSoft.DAL.Models.LocationModels;
 using ProiectSoft.DAL.Models.OrganisationModels;
+using ProiectSoft.DAL.Models.RefugeeModels;
+using ProiectSoft.DAL.Models.ShelterModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.DAL.Wrappers.Filters;
 using ProiectSoft.Services.OrganizationsService;
@@ -163,6 +166,16 @@ namespace ProiectSoft.Services.OrganizationService
             _mapper.Map<OrganisationPutModel, Organisation>(model, organisation);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<OrgAvailableSpace>> GetSheltersWithAvailableSpace()
+        {
+            var org = _context.Organisations
+                .Include(s => s.Shelters.Where(x => x.availableSpace > 0))
+                .Select(_mapper.Map<OrgAvailableSpace>)
+                .ToList();
+
+            return org;
         }
     }
 }

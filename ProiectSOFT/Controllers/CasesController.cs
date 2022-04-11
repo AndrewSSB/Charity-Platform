@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProiectSOFT.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class CasesController : Controller
     {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProiectSoft.DAL.Models.OrganisationModels;
 using ProiectSoft.DAL.Wrappers;
 using ProiectSoft.DAL.Wrappers.Filters;
@@ -8,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProiectSOFT.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class OrganisationController : Controller
     {
@@ -64,6 +66,14 @@ namespace ProiectSOFT.Controllers
             await _organisationService.Delete(id);
 
             return Ok("Deleted succesfully");
+        }
+
+        [HttpGet("AvailableShelters")]
+        public async Task<IActionResult> AvailableShelters()
+        {
+            var org = await _organisationService.GetSheltersWithAvailableSpace();
+
+            return Ok(org);
         }
     }
 }
