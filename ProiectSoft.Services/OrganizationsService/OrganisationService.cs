@@ -102,10 +102,10 @@ namespace ProiectSoft.Services.OrganizationService
                 case "Name":
                     organisations = !filter.descending ? organisations.OrderBy(x => x.Name) : organisations.OrderByDescending(x => x.Name);
                     break;
-                case "Date":
+                case "Case":
                     organisations = !filter.descending ? organisations.OrderBy(s => s.CasesId) : organisations.OrderByDescending(x => x.CasesId);
                     break;
-                case "Age":
+                case "Date":
                     organisations = !filter.descending ? organisations.OrderBy(s => s.DateCreated) : organisations.OrderByDescending(x => x.DateCreated);
                     break;
                 default:

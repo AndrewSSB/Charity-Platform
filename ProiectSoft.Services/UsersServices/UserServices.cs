@@ -79,7 +79,7 @@ namespace ProiectSoft.Services.UsersServices
                 case "Email":
                     users = !filter.descending == false ? users.OrderBy(s => s.Email) : users.OrderByDescending(x => x.Email);
                     break;
-                case "Age":
+                case "FirstName":
                     users = !filter.descending == false ? users.OrderBy(s => s.FirstName) : users.OrderByDescending(x => x.FirstName);
                     break;
                 default:
